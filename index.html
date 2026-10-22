@@ -1,0 +1,1897 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SPL Testnet — Every Match. Every Moment. Every Goal.</title>
+<meta name="application-name" content="SPL">
+<meta name="apple-mobile-web-app-title" content="SPL">
+<meta name="description" content="SPL — live football scores, fixtures, results, match centres and league tables.">
+<meta name="theme-color" content="#0A0C0E">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg2:#0F1215; --surface:#13171B; --surface2:#1A1F25; --surface3:#232A31;
+  --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
+  --text:#F3F5F7; --muted:#8C949D; --dim:#5C646D;
+  --green:#2BE37F; --green-d:#16B862; --green-glow:rgba(43,227,127,.18);
+  --amber:#FFB547; --red:#FF4D5E; --yellow:#FFD23F; --blue:#4D9BFF; --orange:#FF8A3D; --teal:#2CC8C8;
+  --display:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+  --body:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --nav-h:68px; --top-h:56px; --r:14px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.4}
+body{min-height:100vh;overscroll-behavior-y:contain}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+img{display:block}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Top bar ---------- */
+.top{position:sticky;top:0;z-index:30;height:var(--top-h);display:flex;align-items:center;gap:10px;padding:0 14px;
+  background:rgba(10,12,14,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top .back{width:40px;height:40px;display:none;align-items:center;justify-content:center;border-radius:12px;margin-left:-8px}
+.top.sub .back{display:flex}
+.brand{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.brand-mark{width:30px;height:30px;flex:none}
+.wordmark{font-family:var(--display);font-weight:700;font-size:25px;letter-spacing:.08em;line-height:1}
+.dom-tag{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--green);border:1px solid rgba(43,227,127,.3);border-radius:10px;padding:2px 7px;margin-left:2px}
+.top.sub .dom-tag{display:none}
+.top-title{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none}
+.top.sub .brand-mark,.top.sub .wordmark{display:none}
+.top.sub .top-title{display:block}
+.icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;color:var(--text)}
+.icon-btn:active{background:var(--surface2)}
+
+/* ---------- Layout ---------- */
+main{padding:0 0 calc(var(--nav-h) + var(--safe-b) + 24px);max-width:720px;margin:0 auto;min-height:calc(100vh - var(--top-h))}
+.view{animation:in .22s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.pad{padding:0 14px}
+.section-h{display:flex;align-items:baseline;justify-content:space-between;padding:20px 14px 8px}
+.section-h h2{margin:0;font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.section-h a,.section-h button{font-size:13px;color:var(--green);font-weight:600}
+
+/* ---------- Bottom nav ---------- */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);
+  display:grid;grid-template-columns:repeat(5,1fr);background:rgba(13,16,19,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--dim);font-size:11px;font-weight:700;letter-spacing:.02em;position:relative}
+.nav a svg{width:24px;height:24px}
+.nav a.on{color:var(--text)}
+.nav a.on::before{content:"";position:absolute;top:0;left:30%;right:30%;height:2px;border-radius:0 0 2px 2px;background:var(--green)}
+.nav .live-dot{position:absolute;top:12px;left:calc(50% + 8px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--green);color:#04210F;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center}
+.nav .live-dot.show{display:flex}
+
+/* ---------- Date strip & chips ---------- */
+.dates{display:flex;gap:6px;overflow-x:auto;padding:12px 14px 4px;scrollbar-width:none;scroll-snap-type:x mandatory}
+.dates::-webkit-scrollbar,.chips::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
+.date{flex:none;scroll-snap-align:center;min-width:56px;padding:7px 8px;border-radius:12px;text-align:center;color:var(--muted);border:1px solid transparent}
+.date b{display:block;font-family:var(--display);font-size:19px;color:var(--text);font-weight:700;line-height:1.1}
+.date small{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.date.on{background:var(--surface2);border-color:var(--line2)}
+.date.on small{color:var(--green)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 14px 2px;scrollbar-width:none}
+.chip{flex:none;height:34px;padding:0 14px;border-radius:17px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chip .c{font-size:11px;opacity:.75}
+
+/* ---------- Competition group + match rows ---------- */
+.group{margin:10px 10px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.group-h{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.025),transparent)}
+.group-h .crest{width:22px;height:22px}
+.group-h .t{flex:1;min-width:0}
+.group-h .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.group-h .t small{color:var(--muted);font-size:12px}
+.row{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:10px;padding:9px 12px;min-height:58px;position:relative}
+.row+.row{border-top:1px solid var(--line)}
+.row:active{background:var(--surface2)}
+.row .st{font-size:13px;color:var(--muted);text-align:center;font-weight:600;line-height:1.15}
+.row .st.live{color:var(--green);font-weight:800}
+.row .st.off{color:var(--amber);font-size:11px}
+.row .teams{min-width:0;display:flex;flex-direction:column;gap:5px}
+.tm{display:flex;align-items:center;gap:8px;min-width:0;font-size:14.5px}
+.tm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm.lose span{color:var(--muted)}
+.tm.win span{font-weight:700}
+.row .sc{display:flex;flex-direction:column;gap:5px;text-align:right;font-family:var(--display);font-weight:700;font-size:18px;line-height:20px;min-width:22px}
+.row .sc.live{color:var(--green)}
+.row .sc .pen{font-family:var(--body);font-size:10px;color:var(--muted);font-weight:600}
+.row.live::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--green)}
+.pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green-glow);animation:pulse 1.6s infinite;vertical-align:middle;margin-right:4px}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(43,227,127,.55)}70%{box-shadow:0 0 0 7px rgba(43,227,127,0)}100%{box-shadow:0 0 0 0 rgba(43,227,127,0)}}
+.flash{animation:flash 2.4s ease-out}
+@keyframes flash{0%,30%{background:rgba(43,227,127,.22)}100%{background:transparent}}
+
+/* crests */
+.crest{width:20px;height:20px;flex:none;object-fit:contain}
+.crest-fb{width:20px;height:20px;flex:none;border-radius:50%;background:var(--surface3);color:var(--muted);font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;letter-spacing:-.02em}
+
+/* star */
+.star{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--dim);border-radius:10px;flex:none}
+.star.on{color:var(--yellow)}
+.star svg{width:20px;height:20px}
+
+/* ---------- Freshness + notices ---------- */
+.fresh{display:flex;align-items:center;gap:6px;justify-content:center;font-size:12px;color:var(--dim);padding:14px 14px 0}
+.fresh.warn{color:var(--amber)}
+.note{margin:12px 10px 0;padding:11px 13px;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.note svg{flex:none;width:18px;height:18px;margin-top:1px}
+.note.warn{border-color:rgba(255,181,71,.3);color:#F1D3A3;background:rgba(255,181,71,.06)}
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty .big{font-family:var(--display);font-size:22px;color:var(--text);font-weight:700;margin:12px 0 6px;letter-spacing:.01em}
+.empty svg{width:44px;height:44px;color:var(--dim)}
+.btn{height:44px;padding:0 18px;border-radius:12px;background:var(--green);color:#04210F;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--line2)}
+.btn:disabled{opacity:.5}
+.skel{background:linear-gradient(90deg,var(--surface) 0%,var(--surface2) 50%,var(--surface) 100%);background-size:200% 100%;animation:sh 1.3s infinite;border-radius:var(--r);height:140px;margin:10px}
+@keyframes sh{from{background-position:200% 0}to{background-position:-200% 0}}
+.soon{display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(77,155,255,.14);color:var(--blue);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+
+
+/* ---------- Match centre ---------- */
+.hero{position:relative;padding:16px 14px 18px;background:
+  radial-gradient(120% 90% at 50% 0%,rgba(43,227,127,.10),transparent 60%),
+  linear-gradient(180deg,var(--bg2),var(--bg));border-bottom:1px solid var(--line);overflow:hidden}
+.hero::after{content:"";position:absolute;left:50%;top:-60px;width:220px;height:220px;margin-left:-110px;border:1px solid rgba(255,255,255,.05);border-radius:50%;pointer-events:none}
+.hero .comp{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--muted);font-size:12.5px;font-weight:600}
+.hero .comp .crest{width:16px;height:16px}
+.board{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px;margin-top:16px;position:relative;z-index:1}
+.side{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;min-width:0}
+.side .crest,.side .crest-fb{width:56px;height:56px;font-size:15px}
+.side b{font-size:14.5px;line-height:1.2;max-width:100%;overflow-wrap:anywhere}
+.mid{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:110px;padding-top:4px}
+.big-score{font-family:var(--display);font-weight:700;font-size:52px;line-height:1;letter-spacing:.02em;display:flex;gap:10px;align-items:center}
+.big-score .dash{color:var(--dim);font-size:34px}
+.big-score.live{color:var(--green);text-shadow:0 0 24px rgba(43,227,127,.25)}
+.kick{font-family:var(--display);font-weight:700;font-size:34px;line-height:1}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:var(--surface2);font-size:12px;font-weight:700;color:var(--muted)}
+.pill.live{background:rgba(43,227,127,.12);color:var(--green)}
+.pill.off{background:rgba(255,181,71,.12);color:var(--amber)}
+.sub-line{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 10px;border-bottom:1px solid var(--line);position:sticky;top:var(--top-h);z-index:20;background:rgba(10,12,14,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);scrollbar-width:none}
+.tab{flex:none;height:46px;padding:0 12px;color:var(--muted);font-weight:700;font-size:14px;position:relative}
+.tab.on{color:var(--text)}
+.tab.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:var(--green)}
+.panel{padding:6px 0 0}
+
+/* timeline */
+.tl{position:relative;margin:12px 10px;padding:6px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.tl::before{content:"";position:absolute;left:50%;top:14px;bottom:14px;width:1px;background:var(--line2)}
+.ev{display:grid;grid-template-columns:1fr 46px 1fr;align-items:center;min-height:46px;padding:4px 10px;position:relative}
+.ev .min{justify-self:center;width:40px;height:24px;border-radius:12px;background:var(--surface3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1}
+.ev .who{display:flex;align-items:center;gap:8px;font-size:13.5px;min-width:0}
+.ev .who .tx{min-width:0}
+.ev .who .tx b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:700;overflow:hidden;overflow-wrap:anywhere;line-height:1.25}
+.ev .who .tx small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .L{justify-content:flex-end;text-align:right;padding-right:6px}
+.ev .R{padding-left:6px}
+.ev .ic{flex:none;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.card-y,.card-r,.card-yr{width:11px;height:15px;border-radius:2px;background:var(--yellow)}
+.card-r{background:var(--red)}
+.card-yr{background:linear-gradient(135deg,var(--yellow) 50%,var(--red) 50%)}
+.ev.goal .min{background:var(--green);color:#04210F}
+.ev-break{text-align:center;padding:8px;position:relative;z-index:1}
+.ev-break span{background:var(--surface);padding:3px 10px;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted);border:1px solid var(--line2);border-radius:10px}
+
+/* stats */
+.stats{margin:12px 10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px 14px 12px}
+.stat{padding:10px 0}
+.stat+.stat{border-top:1px solid var(--line)}
+.stat .lbl{display:grid;grid-template-columns:60px 1fr 60px;align-items:center;font-size:13px}
+.stat .lbl b{font-family:var(--display);font-size:18px;font-weight:700}
+.stat .lbl b:last-child{text-align:right}
+.stat .lbl span{text-align:center;color:var(--muted);font-weight:600}
+.bars{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:7px}
+.bar{height:6px;border-radius:3px;background:var(--surface3);overflow:hidden;display:flex}
+.bar.l{justify-content:flex-end}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--text)}
+.bar.l i.lead,.bar.r i.lead{background:var(--green)}
+.na{color:var(--dim)!important;font-family:var(--body)!important;font-size:12px!important;font-weight:600!important}
+
+/* lineups / pitch */
+.pitch{position:relative;margin:12px 10px;aspect-ratio:68/80;border-radius:var(--r);overflow:hidden;
+  background:repeating-linear-gradient(180deg,#123A24 0 10%,#10351F 10% 20%);border:1px solid rgba(255,255,255,.08)}
+.pitch .lines{position:absolute;inset:0;width:100%;height:100%}
+.pl{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;width:76px;text-align:center}
+.pl .n{width:30px;height:30px;border-radius:50%;background:var(--text);color:var(--bg);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.pl.gk .n{background:var(--yellow)}
+.pl .nm{font-size:11px;font-weight:700;line-height:1.15;text-shadow:0 1px 3px rgba(0,0,0,.8);max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lu-meta{display:flex;justify-content:space-between;align-items:center;padding:0 14px;color:var(--muted);font-size:13px}
+.lu-meta b{color:var(--text);font-family:var(--display);font-size:18px}
+.plist{margin:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.plist .p{display:flex;align-items:center;gap:12px;padding:10px 14px;font-size:14px}
+.plist .p+.p{border-top:1px solid var(--line)}
+.plist .p .no{width:26px;text-align:center;font-family:var(--display);font-weight:700;color:var(--muted);font-size:16px}
+.plist .p .pos{margin-left:auto;font-size:12px;color:var(--muted)}
+.plist h4{margin:0;padding:12px 14px 4px;font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+
+/* info list */
+.kv{margin:12px 10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.kv div{display:flex;justify-content:space-between;gap:14px;padding:12px 14px;font-size:14px}
+.kv div+div{border-top:1px solid var(--line)}
+.kv span{color:var(--muted)}
+.kv b{text-align:right;font-weight:600}
+
+/* h2h */
+.h2h-sum{display:grid;grid-template-columns:1fr 1fr 1fr;margin:12px 10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 6px;text-align:center}
+.h2h-sum b{display:block;font-family:var(--display);font-size:32px;font-weight:700;line-height:1}
+.h2h-sum small{color:var(--muted);font-size:12px}
+
+/* table */
+.tbl-wrap{margin:12px 10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tbl-head{display:flex;align-items:center;gap:12px;margin:12px 10px 0;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.tbl-head .crest,.tbl-head .crest-fb{width:30px;height:30px}
+.tbl-head .t{flex:1;min-width:0}.tbl-head .t b{display:block}.tbl-head .t small{color:var(--muted);font-size:12px}
+.tbl-head .more{display:flex;align-items:center;gap:2px;font-size:12px;font-weight:700;color:var(--green);white-space:nowrap}
+@media(min-width:720px){.tbl-head{margin-left:0;margin-right:0}}
+.tbl-wrap h3{margin:0;padding:11px 14px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);letter-spacing:.06em;text-transform:uppercase}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{font-size:11px;font-weight:700;color:var(--dim);text-align:center;padding:9px 3px;text-transform:uppercase;letter-spacing:.05em}
+.tbl td{font-variant-numeric:tabular-nums;text-align:center;padding:8px 3px;border-top:1px solid var(--line)}
+.tbl td.tm-c{text-align:left;font-variant-numeric:normal}
+.tbl td.tm-c a{display:flex;align-items:center;gap:8px;min-width:0}
+.tbl td.tm-c span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
+.tbl .pos{width:32px;position:relative;font-weight:700}
+.tbl .pos i{position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0}
+.tbl .pts{font-weight:800;font-family:var(--display);font-size:16px}
+.tbl tr.fav td{background:rgba(255,210,63,.06)}
+.tbl .hide-s{display:none}
+@media(min-width:460px){.tbl .hide-s{display:table-cell}.tbl td.tm-c span{max-width:none}}
+.form{display:flex;gap:3px;justify-content:center}
+.form i{width:16px;height:16px;border-radius:4px;font-size:9.5px;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;color:#0A0C0E}
+.form .W{background:var(--green)} .form .D{background:#9AA3AD} .form .L{background:var(--red);color:#fff}
+.legend{padding:10px 14px 14px;display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px}
+
+/* competition + team headers */
+.ent{display:flex;align-items:center;gap:14px;padding:18px 14px;background:linear-gradient(180deg,var(--bg2),var(--bg));border-bottom:1px solid var(--line)}
+.ent .crest,.ent .crest-fb{width:58px;height:58px;font-size:16px}
+.ent .t{flex:1;min-width:0}
+.ent h1{margin:0;font-family:var(--display);font-size:27px;line-height:1.05;letter-spacing:.01em}
+.ent p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.follow{height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line2);font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;flex:none}
+.follow.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+
+/* list items */
+.list{margin:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.li{display:flex;align-items:center;gap:12px;padding:11px 12px;min-height:54px}
+.li+.li{border-top:1px solid var(--line)}
+.li:active{background:var(--surface2)}
+.li .crest,.li .crest-fb{width:28px;height:28px}
+.li .t{flex:1;min-width:0}
+.li .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .t small{color:var(--muted);font-size:12.5px}
+.li.dis{opacity:.45}
+.li .tag{font-size:10.5px;color:var(--muted);border:1px solid var(--line2);border-radius:6px;padding:2px 6px;white-space:nowrap}
+.chev{color:var(--dim);width:18px;height:18px;flex:none}
+
+/* settings toggles */
+.tog{position:relative;width:46px;height:28px;border-radius:14px;background:var(--surface3);flex:none;transition:background .2s}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.tog.on{background:var(--green)}
+.tog.on::after{transform:translateX(18px)}
+.tog:disabled{opacity:.35}
+
+/* hero banner on My Football */
+.me-card{margin:14px 10px 0;padding:18px;border-radius:18px;border:1px solid var(--line2);
+  background:radial-gradient(140% 120% at 100% 0%,rgba(43,227,127,.16),transparent 55%),linear-gradient(160deg,var(--surface2),var(--surface));}
+.me-card h2{margin:0 0 4px;font-family:var(--display);font-size:24px}
+.me-card p{margin:0 0 14px;color:var(--muted);font-size:13.5px}
+
+/* search overlay */
+.search{position:fixed;inset:0;z-index:60;background:rgba(6,8,9,.97);display:none;flex-direction:column}
+.search.open{display:flex;animation:in .18s ease-out}
+.search-bar{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--line);padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.search-bar input{flex:1;height:44px;border-radius:12px;border:1px solid var(--line2);background:var(--surface);color:var(--text);padding:0 14px;font:inherit;font-size:16px;outline:none}
+.search-bar input:focus{border-color:var(--green)}
+.search-res{flex:1;overflow-y:auto;padding-bottom:40px}
+
+footer.foot{padding:26px 18px 8px;color:var(--dim);font-size:11.5px;text-align:center;line-height:1.6}
+footer.foot a{text-decoration:underline}
+
+/* splash + onboarding */
+.splash{position:fixed;inset:0;z-index:100;background:radial-gradient(90% 60% at 50% 40%,rgba(43,227,127,.12),transparent 70%),var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .35s ease}
+.splash.out{opacity:0;pointer-events:none}
+.splash svg{width:84px;height:84px;animation:pop .5s ease-out}
+.splash .name{font-family:var(--display);font-weight:700;font-size:46px;letter-spacing:.14em;line-height:1;padding-left:.14em}
+.splash .tag{color:var(--muted);font-size:13.5px;letter-spacing:.04em}
+.splash .dom{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom,0px));color:var(--dim);font-size:12px;letter-spacing:.1em}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.onb{position:fixed;inset:0;z-index:95;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;animation:in .25s ease-out}
+.onb-top{display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top,0px)) 18px 0;height:60px}
+.onb-brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:.1em}
+.onb-brand svg{width:28px;height:28px}
+.onb-skip{color:var(--muted);font-weight:700;font-size:14px;padding:10px 4px}
+.onb-track{flex:1;display:flex;transition:transform .38s cubic-bezier(.2,.8,.2,1);touch-action:pan-y}
+.onb-slide{flex:0 0 100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 26px 0;text-align:center}
+.onb-art{width:100%;max-width:330px;aspect-ratio:1/1;margin-bottom:26px;position:relative}
+.onb-art svg{width:100%;height:100%;display:block}
+.onb-slide h2{margin:0 0 10px;font-family:var(--display);font-weight:700;font-size:34px;line-height:1.02;letter-spacing:.01em}
+.onb-slide h2 em{font-style:normal;color:var(--green)}
+.onb-slide p{margin:0;max-width:330px;color:var(--muted);font-size:15px;line-height:1.5}
+.onb-foot{padding:14px 22px calc(22px + env(safe-area-inset-bottom,0px))}
+.onb-foot .btn{width:100%;height:54px;font-size:16px;border-radius:14px}
+.onb-guest[hidden],.onb-legal[hidden]{display:none}
+.onb-guest{display:block;width:100%;margin-top:10px;height:44px;color:var(--muted);font-weight:700;font-size:14px}
+.onb-domain{text-align:center;margin-top:12px;color:var(--dim);font-size:12px;letter-spacing:.12em}
+.onb-domain b{color:var(--muted);font-weight:700}
+.onb-login .lg-mark{width:96px;height:96px;margin:0 auto 18px;filter:drop-shadow(0 10px 30px rgba(43,227,127,.25))}
+.onb-login .lg-name{font-family:var(--display);font-weight:700;font-size:54px;letter-spacing:.14em;line-height:1;padding-left:.14em}
+.onb-login .lg-dom{display:inline-block;margin:10px 0 18px;padding:5px 14px;border-radius:20px;border:1px solid rgba(43,227,127,.35);color:var(--green);font-weight:700;letter-spacing:.08em;font-size:14px}
+.onb-perks{display:grid;gap:10px;margin:22px auto 0;max-width:320px;text-align:left}
+.onb-perks div{display:flex;gap:10px;align-items:center;color:var(--text);font-size:14px}
+.onb-perks svg{flex:none;width:20px;height:20px;color:var(--green)}
+.onb-msg{min-height:18px;margin-top:8px;text-align:center;font-size:12.5px;color:var(--amber)}
+.pi-glyph{font-family:var(--display);font-size:22px;line-height:1}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* Pi */
+.net-badge.test{background:rgba(255,181,71,.14);color:var(--amber)}
+.net-badge.test .pulse{background:var(--amber)}
+.test-strip{position:fixed;top:0;left:0;right:0;z-index:120;height:3px;background:repeating-linear-gradient(90deg,var(--amber) 0 14px,transparent 14px 22px);pointer-events:none}
+.net-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;background:rgba(43,227,127,.12);color:var(--green);font-size:11px;font-weight:800;letter-spacing:.04em;margin-bottom:10px}
+.pi-msg{display:block;margin-top:8px;font-size:12.5px;color:var(--muted);min-height:1em}
+.pay-card{margin:0 10px;padding:16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.pay-card p{margin:0 0 14px;color:var(--muted);font-size:13.5px}
+.amounts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.amt{height:52px;border-radius:12px;background:var(--surface2);border:1px solid var(--line2);font-family:var(--display);font-weight:700;font-size:21px}
+.amt:active{background:var(--green);color:#04210F}
+.pay-log{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:12px;max-height:180px;overflow-y:auto}
+.pay-log .plog{display:flex;gap:8px;padding:3px 0;line-height:1.35}
+.pay-log time{color:var(--dim);font-variant-numeric:tabular-nums;flex:none}
+.pay-log .ok span{color:var(--green)} .pay-log .err span{color:var(--red)} .pay-log .warn span{color:var(--amber)}
+.pl-empty{color:var(--dim)}
+@media(min-width:720px){.pay-card{margin-left:0;margin-right:0}}
+/* ---- onboarding scenes (SVG + CSS, play when the slide is active) ---- */
+.onb-art svg *{transform-box:fill-box;transform-origin:center}
+.onb-art .s1-ball,.onb-art .s1-ball *{transform-box:view-box;transform-origin:0 0}
+.s1-ball{transform:translate(168px,158px) scale(.45)}
+.s1-spin{transform-box:view-box!important;transform-origin:0 0!important}
+.s1-h1{opacity:0}
+.s1-conf *{opacity:0}
+.s1-flash{opacity:0}
+.s1-board-glow{stroke-opacity:.35}
+.s1-net{transform-origin:50% 0!important}
+.s1-dot{animation:blink 1.4s ease-in-out infinite}
+.s1-beam{opacity:.5}
+.onb-slide.play .s1-beam{animation:beam 7s ease-in-out infinite alternate}
+.onb-slide.play .s1-beam.b2{animation-duration:8.5s;animation-delay:-3s}
+.onb-slide.play .s1-ball{animation:s1ball 6s cubic-bezier(.3,.1,.3,1) infinite both}
+.onb-slide.play .s1-spin{animation:spin 6s linear infinite}
+.onb-slide.play .s1-trail{animation:s1trail 6s ease-out infinite both}
+.onb-slide.play .s1-net{animation:s1net 6s ease-out infinite both}
+.onb-slide.play .s1-flash{animation:s1flash 6s ease-out infinite both}
+.onb-slide.play .s1-conf *{animation:s1conf 6s cubic-bezier(.15,.7,.3,1) infinite both}
+.onb-slide.play .s1-h1{animation:s1h1 6s ease-in-out infinite both}
+.onb-slide.play .s1-h2{animation:s1h2 6s ease-in-out infinite both}
+.onb-slide.play .s1-goal{animation:s1goal 6s cubic-bezier(.3,1.6,.5,1) infinite both}
+.onb-slide.play .s1-board-glow{animation:s1glow 6s ease-out infinite both}
+.onb-slide.play .s1-board{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes beam{from{opacity:.25;transform:skewX(-4deg)}to{opacity:.6;transform:skewX(4deg)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(1080deg)}}
+@keyframes s1ball{
+  0%{transform:translate(112px,286px) scale(1);opacity:0}
+  6%,12%{transform:translate(112px,286px) scale(1);opacity:1}
+  22%{transform:translate(122px,236px) scale(.84)}
+  32%{transform:translate(142px,190px) scale(.64)}
+  40%{transform:translate(166px,158px) scale(.48)}
+  45%{transform:translate(170px,164px) scale(.45);opacity:1}
+  82%{transform:translate(170px,164px) scale(.45);opacity:1}
+  90%,100%{transform:translate(170px,164px) scale(.45);opacity:0}}
+@keyframes s1trail{0%,12%{stroke-dashoffset:160;opacity:.9}40%{stroke-dashoffset:0;opacity:.9}60%,100%{stroke-dashoffset:0;opacity:0}}
+@keyframes s1net{0%,40%{transform:scale(1,1)}45%{transform:scale(1.07,1.22)}52%{transform:scale(.98,.94)}60%,100%{transform:scale(1,1)}}
+@keyframes s1flash{0%,40%{opacity:0;transform:scale(.4)}45%{opacity:1;transform:scale(1)}62%,100%{opacity:0;transform:scale(1.5)}}
+@keyframes s1conf{0%,42%{opacity:0;transform:translate(0,0) rotate(0)}46%{opacity:1}72%{opacity:1;transform:translate(var(--dx),var(--dy)) rotate(var(--r))}86%,100%{opacity:0;transform:translate(var(--dx),calc(var(--dy) + 40px)) rotate(var(--r))}}
+@keyframes s1h1{0%,42%{opacity:1;transform:translateY(0)}48%{opacity:0;transform:translateY(-30px)}93%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes s1h2{0%,42%{opacity:0;transform:translateY(30px)}48%,88%{opacity:1;transform:translateY(0)}94%,100%{opacity:0;transform:translateY(-30px)}}
+@keyframes s1goal{0%,43%{opacity:0;transform:scale(.2) rotate(-8deg)}50%{opacity:1;transform:scale(1) rotate(0)}84%{opacity:1;transform:scale(1)}92%,100%{opacity:0;transform:scale(.8)}}
+@keyframes s1glow{0%,42%{stroke-opacity:.35}47%{stroke-opacity:1;stroke-width:4}70%,100%{stroke-opacity:.35;stroke-width:2}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* scene 2 */
+.s2-pass{stroke-dashoffset:0;opacity:.0}
+.s2-ring{opacity:0}
+.onb-slide.play .s2-pitch{animation:slideL .7s cubic-bezier(.2,.8,.2,1) both}
+.onb-slide.play .s2-stats{animation:slideR .7s .35s cubic-bezier(.2,.8,.2,1) both}
+.onb-slide.play .s2-pl{animation:pop .5s var(--d) cubic-bezier(.3,1.6,.5,1) both}
+.onb-slide.play .s2-bar{transform-origin:left center!important;animation:grow .9s var(--d) cubic-bezier(.2,.8,.2,1) both}
+.onb-slide.play .s2-val{animation:fadeUp .5s var(--d) ease-out both}
+.onb-slide.play .s2-card.c1{animation:cardIn .6s 1.5s cubic-bezier(.3,1.5,.5,1) both,floatR 4s 2.1s ease-in-out infinite}
+.onb-slide.play .s2-card.c2{animation:cardIn2 .6s 1.7s cubic-bezier(.3,1.5,.5,1) both,floatR2 4.6s 2.3s ease-in-out infinite}
+.onb-slide.play .s2-pass{animation:pass 4s 1.2s linear infinite both}
+.onb-slide.play .s2-pass.p2{animation-delay:1.7s}.onb-slide.play .s2-pass.p3{animation-delay:2.2s}.onb-slide.play .s2-pass.p4{animation-delay:2.7s}
+.onb-slide.play .s2-ring{animation:ring 4s 1.6s ease-out infinite both}
+.onb-slide.play .s2-ring.r2{animation-delay:2.1s}.onb-slide.play .s2-ring.r3{animation-delay:2.6s}.onb-slide.play .s2-ring.r4{animation-delay:3.1s}
+.s2-card.c1{transform:rotate(-12deg)}.s2-card.c2{transform:rotate(10deg)}
+@keyframes slideL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes slideR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:translateY(14px) scale(.2)}100%{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes cardIn{from{opacity:0;transform:translateY(-30px) rotate(-60deg) scale(.4)}to{opacity:1;transform:rotate(-12deg)}}
+@keyframes cardIn2{from{opacity:0;transform:translateY(-30px) rotate(60deg) scale(.4)}to{opacity:1;transform:rotate(10deg)}}
+@keyframes floatR{0%,100%{transform:rotate(-12deg) translateY(0)}50%{transform:rotate(-8deg) translateY(-5px)}}
+@keyframes floatR2{0%,100%{transform:rotate(10deg) translateY(0)}50%{transform:rotate(14deg) translateY(-6px)}}
+@keyframes pass{0%{opacity:1;stroke-dashoffset:var(--len,80)}12%{opacity:1;stroke-dashoffset:0}55%{opacity:1;stroke-dashoffset:0}70%,100%{opacity:0;stroke-dashoffset:0}}
+.s2-pass.p1{--len:40px}.s2-pass.p2{--len:52px}.s2-pass.p3{--len:76px}.s2-pass.p4{--len:62px}
+@keyframes ring{0%{opacity:.9;transform:scale(.6)}25%{opacity:0;transform:scale(2)}100%{opacity:0;transform:scale(2)}}
+
+/* scene 3 */
+.s3-rays{opacity:0}
+.onb-slide.play .s3-main{animation:shieldIn .8s .1s cubic-bezier(.3,1.5,.5,1) both}
+.onb-slide.play .s3-side.l{animation:sideL .8s .35s cubic-bezier(.3,1.4,.5,1) both,bob 4s 1.2s ease-in-out infinite}
+.onb-slide.play .s3-side.r{animation:sideR .8s .45s cubic-bezier(.3,1.4,.5,1) both,bob 4.4s 1.4s ease-in-out infinite}
+.onb-slide.play .s3-star{animation:starPop .7s .7s cubic-bezier(.3,1.8,.5,1) both,twinkle 2.4s 1.6s ease-in-out infinite}
+.onb-slide.play .s3-rays{animation:rays 2.4s .8s ease-out infinite}
+.onb-slide.play .s3-chip{animation:pop .5s 1.1s cubic-bezier(.3,1.6,.5,1) both}
+.onb-slide.play .s3-note{animation:noteUp .7s 1.4s cubic-bezier(.2,.9,.3,1.2) both}
+.onb-slide.play .s3-bell{transform-origin:50% 10%!important;animation:ring2 2.4s 2s ease-in-out infinite}
+.onb-slide.play .s3-spark path{animation:spark 2.6s ease-in-out infinite both}
+.onb-slide.play .s3-spark .k2{animation-delay:.6s}.onb-slide.play .s3-spark .k3{animation-delay:1.2s}.onb-slide.play .s3-spark .k4{animation-delay:1.8s}
+@keyframes shieldIn{from{opacity:0;transform:translateY(60px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes sideL{from{opacity:0;transform:translate(-50px,30px) rotate(-20deg)}to{opacity:1;transform:none}}
+@keyframes sideR{from{opacity:0;transform:translate(50px,30px) rotate(20deg)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes starPop{from{opacity:0;transform:scale(0) rotate(-90deg)}to{opacity:1;transform:none}}
+@keyframes twinkle{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes rays{0%{opacity:0;transform:scale(.7)}20%{opacity:.9}60%,100%{opacity:0;transform:scale(1.25)}}
+@keyframes noteUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@keyframes ring2{0%,40%,100%{transform:rotate(0)}5%{transform:rotate(16deg)}10%{transform:rotate(-14deg)}15%{transform:rotate(10deg)}20%{transform:rotate(-6deg)}25%{transform:rotate(0)}}
+@keyframes spark{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1) rotate(45deg)}}
+
+
+/* scene 4: leagues worldwide */
+.onb-slide.play .s4-globe{animation:pop .8s .05s cubic-bezier(.3,1.4,.5,1) both}
+.onb-slide.play .s4-mer{transform-box:view-box!important;transform-origin:0 0!important;animation:mer 9s linear infinite}
+.onb-slide.play .s4-shine{transform-box:view-box!important;transform-origin:0 0!important;animation:shine 4.5s ease-in-out infinite}
+.onb-slide.play .s4-orbit{transform-box:view-box!important;transform-origin:160px 160px!important;animation:orbit 30s linear infinite}
+.onb-slide.play .s4-pin{transform-origin:50% 100%!important;animation:pinDrop .6s var(--d) cubic-bezier(.3,1.6,.5,1) both}
+.onb-slide.play .s4-ring{animation:ring 2.4s calc(var(--d) + .6s) ease-out infinite both}
+.onb-slide.play .s4-chip{animation:chipIn .6s var(--d) cubic-bezier(.2,.9,.3,1.2) both,bob 4s calc(var(--d) + .8s) ease-in-out infinite}
+.s4-ring{opacity:0}
+@keyframes mer{from{transform:translateX(0)}to{transform:translateX(-176px)}}
+@keyframes shine{0%{transform:translateX(-80px)}60%,100%{transform:translateX(260px)}}
+@keyframes orbit{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes pinDrop{from{opacity:0;transform:translateY(-26px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes chipIn{from{opacity:0;transform:translateY(12px) scale(.85)}to{opacity:1;transform:none}}
+
+/* scene 5: tables */
+.s5-p1{opacity:0}
+.s5-row.rc{transform:translateY(-70px)}
+.s5-row.ra,.s5-row.rb{transform:translateY(35px)}
+.onb-slide.play .s5-card{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+.onb-slide.play .s5-row{animation:rowIn .5s var(--d) cubic-bezier(.2,.8,.2,1) both}
+.onb-slide.play .s5-row.rc{animation:rowIn .5s var(--d) cubic-bezier(.2,.8,.2,1) both,climb 6.5s 1s cubic-bezier(.5,0,.2,1) infinite both}
+.onb-slide.play .s5-row.ra,.onb-slide.play .s5-row.rb{animation:rowIn .5s var(--d) cubic-bezier(.2,.8,.2,1) both,drop 6.5s 1s cubic-bezier(.5,0,.2,1) infinite both}
+.onb-slide.play .s5-p1{animation:p1 6.5s 1s ease infinite both}
+.onb-slide.play .s5-p2{animation:p2 6.5s 1s ease infinite both}
+.onb-slide.play .s5-plus{animation:plus 6.5s 1s cubic-bezier(.3,1.6,.5,1) infinite both}
+.onb-slide.play .s5-cup{animation:cup 6.5s 1s cubic-bezier(.3,1.6,.5,1) infinite both}
+.s5-plus,.s5-cup{opacity:1}
+@keyframes rowIn{from{opacity:0;transform:translateX(30px)}to{opacity:1}}
+@keyframes climb{0%,25%{transform:translateY(0)}45%,88%{transform:translateY(-70px)}96%,100%{transform:translateY(0)}}
+@keyframes drop{0%,25%{transform:translateY(0)}45%,88%{transform:translateY(35px)}96%,100%{transform:translateY(0)}}
+@keyframes p1{0%,22%{opacity:1}28%,92%{opacity:0}100%{opacity:1}}
+@keyframes p2{0%,22%{opacity:0}28%,92%{opacity:1}100%{opacity:0}}
+@keyframes plus{0%,22%{opacity:0;transform:scale(.3)}30%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(1)}88%,100%{opacity:0;transform:scale(.8)}}
+@keyframes cup{0%,40%{opacity:0;transform:scale(.2) rotate(-25deg)}50%{opacity:1;transform:scale(1.1) rotate(6deg)}56%,84%{opacity:1;transform:scale(1) rotate(0)}92%,100%{opacity:0;transform:scale(.6)}}
+
+/* story-style progress + obvious controls */
+.onb-bars{display:flex;gap:5px;padding:4px 18px 0}
+.onb-bars i{flex:1;height:3.5px;border-radius:2px;background:rgba(255,255,255,.16);overflow:hidden;position:relative}
+.onb-bars i b{position:absolute;inset:0;width:0;background:var(--green);border-radius:2px}
+.onb-bars i.done b{width:100%}
+.onb-bars i.on b{animation:fillbar var(--dur,6.5s) linear forwards}
+.onb-bars.paused i.on b{animation-play-state:paused}
+.onb-bars.hide{visibility:hidden}
+@keyframes fillbar{from{width:0}to{width:100%}}
+.onb-skip{border:1px solid var(--line2);border-radius:20px;padding:8px 16px!important;color:var(--text)!important;background:rgba(255,255,255,.04);display:flex;align-items:center;gap:4px}
+.onb-count{display:block;text-align:center;font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--dim);margin-bottom:12px}
+.onb-foot .btn .arr{font-size:20px;line-height:1;margin-left:2px}
+
+/* login page */
+.onb-slide.play .lg-mark{animation:pop .7s .1s cubic-bezier(.3,1.6,.5,1) both,halo 3s 1s ease-in-out infinite}
+.onb-slide.play .lg-name{animation:fadeUp .6s .3s ease-out both}
+.onb-slide.play .lg-dom{animation:fadeUp .6s .45s ease-out both}
+.onb-slide.play .onb-perks div{animation:fadeUp .5s ease-out both}
+.onb-slide.play .onb-perks div:nth-child(1){animation-delay:.6s}.onb-slide.play .onb-perks div:nth-child(2){animation-delay:.72s}.onb-slide.play .onb-perks div:nth-child(3){animation-delay:.84s}
+@keyframes halo{0%,100%{filter:drop-shadow(0 10px 26px rgba(43,227,127,.2))}50%{filter:drop-shadow(0 10px 40px rgba(43,227,127,.5))}}
+.onb-slide h2,.onb-slide p{transition:none}
+.onb-slide.play h2{animation:fadeUp .6s .15s ease-out both}
+.onb-slide.play > p{animation:fadeUp .6s .28s ease-out both}
+.legal{padding:18px 18px 0;max-width:680px}
+.legal h1{font-family:var(--display);font-size:32px;margin:6px 0 2px}
+.legal .upd{color:var(--dim);font-size:12.5px;margin:0 0 14px}
+.legal h3{font-size:15px;margin:22px 0 6px}
+.legal p,.legal li{color:#C9CED4;font-size:14px;line-height:1.6}
+.legal ul{padding-left:18px;margin:6px 0}
+.legal li{margin:6px 0}
+.legal b{color:var(--text)}
+.legal .other a{color:var(--green);font-weight:700}
+.onb-legal{text-align:center;margin-top:10px;font-size:11.5px;color:var(--dim)}
+.onb-legal a{color:var(--muted);text-decoration:underline}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(min-width:720px){.group,.list,.tbl-wrap,.stats,.tl,.kv,.plist,.pitch,.h2h-sum,.note{margin-left:0;margin-right:0}}
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#13171B"/><rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#2BE37F" stroke-opacity=".35" stroke-width="2"/><circle cx="32" cy="32" r="13" fill="none" stroke="#2BE37F" stroke-width="3.2"/><path d="M8 32h48" stroke="#2BE37F" stroke-width="3.2"/><circle cx="32" cy="32" r="3.6" fill="#F3F5F7"/></svg><div class="name">SPL</div><div class="tag">Every Match. Every Moment. Every Goal.</div><div class="dom">spl.pi</div></div>
+<header class="top" id="top">
+  <button class="back" id="backBtn" aria-label="Back">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <a class="brand" href="#/home" aria-label="SPL home">
+    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#13171B"/><rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#2BE37F" stroke-opacity=".35" stroke-width="2"/><circle cx="32" cy="32" r="13" fill="none" stroke="#2BE37F" stroke-width="3.2"/><path d="M8 32h48" stroke="#2BE37F" stroke-width="3.2"/><circle cx="32" cy="32" r="3.6" fill="#F3F5F7"/></svg>
+    <span class="wordmark">SPL</span><span class="dom-tag">spl.pi</span>
+  </a>
+  <span class="top-title" id="topTitle"></span>
+  <button class="icon-btn" id="searchBtn" aria-label="Search teams and competitions">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+  </button>
+</header>
+
+<main id="app" aria-live="polite"></main>
+
+<nav class="nav" aria-label="Main">
+  <a href="#/home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-4.5v-6h-5v6H5a1 1 0 01-1-1z"/></svg>Home</a>
+  <a href="#/live" data-tab="live"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M7.8 7.8a6 6 0 000 8.4M16.2 7.8a6 6 0 010 8.4M5 5a10 10 0 000 14M19 5a10 10 0 010 14"/></svg>Live<span class="live-dot num" id="liveCount"></span></a>
+  <a href="#/competitions" data-tab="competitions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 4h8v5a4 4 0 01-8 0z"/><path d="M8 6H5a3 3 0 003 4M16 6h3a3 3 0 01-3 4M12 13v4M8 20h8M9.5 17h5"/></svg>Leagues</a>
+  <a href="#/tables" data-tab="tables"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9h17M3.5 14.5h17M9 9v11"/></svg>Tables</a>
+  <a href="#/me" data-tab="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/></svg>My Football</a>
+</nav>
+
+<div class="search" id="search" role="dialog" aria-label="Search">
+  <div class="search-bar">
+    <input id="searchInput" type="search" placeholder="Search teams, leagues, countries" autocomplete="off" enterkeyhint="search">
+    <button class="icon-btn" id="searchClose" aria-label="Close search">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="search-res" id="searchRes"></div>
+</div>
+
+<script src="https://sdk.minepi.com/pi-sdk.js" async></script>
+<script>
+'use strict';
+/* =====================================================================
+   SPL — Stage 1 client
+   Data comes only from /api/* (our Cloudflare Functions). No provider keys
+   in the browser, and nothing is ever invented when data is missing.
+   ===================================================================== */
+
+const CONFIG = {
+  SUPPORT_EMAIL: 'support.spl.pi@gmail.com',
+  PI_SANDBOX: true,           // TESTNET (Pi sandbox). This repo is SPL Testnet only.
+  PAY_AMOUNTS: [0.5, 1, 5],   // must match ALLOWED_AMOUNTS in server/pi.js
+  LIVE_REFRESH_MS: 30000,
+  PAGE_REFRESH_MS: 120000,
+  STALE_AFTER_MS: 150000,     // live data older than this is flagged as delayed
+};
+
+/* ---------------- small helpers ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const app = $('#app');
+const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ESC[c]);
+const TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } })();
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('spl.v1.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('spl.v1.' + k, JSON.stringify(v)); } catch {} },
+};
+const settings = Object.assign({ h24: true, dataSaver: false }, store.get('settings', {}));
+const saveSettings = () => store.set('settings', settings);
+
+function ymd(d) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+}
+const todayStr = () => ymd(new Date());
+function shiftDay(str, n) { const d = new Date(str + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: !settings.h24 });
+}
+function fmtDate(iso, opts = { weekday: 'short', day: 'numeric', month: 'short' }) {
+  return new Date(iso).toLocaleDateString([], opts);
+}
+function ago(ms) {
+  const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.round(s / 60) + ' min ago';
+  if (s < 86400) return Math.round(s / 3600) + ' h ago';
+  return Math.round(s / 86400) + ' d ago';
+}
+
+/* icons */
+const IC = {
+  star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/></svg>',
+  starO: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+  warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17v.5"/></svg>',
+  ball: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 2.9-1.5 4.7h-5L8 10.4z" fill="currentColor" stroke-linejoin="round"/></svg>',
+  sub: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v13M3.5 13.5L7 17l3.5-3.5" stroke="#2BE37F"/><path d="M17 20V7M13.5 10.5L17 7l3.5 3.5" stroke="#FF4D5E"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>',
+  var: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg>',
+  miss: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FF4D5E" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg>',
+  pitch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14"/><circle cx="12" cy="12" r="2.5"/></svg>',
+  news: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+  plug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 01-12 0zM12 17v4"/></svg>',
+};
+
+function crest(src, name, cls = 'crest') {
+  const initials = esc(String(name || '?').replace(/[^A-Za-z0-9 ]/g, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?');
+  if (!src || settings.dataSaver) return `<span class="crest-fb ${cls === 'crest' ? '' : cls}" aria-hidden="true">${initials}</span>`;
+  return `<img class="${cls}" src="${esc(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=&quot;crest-fb&quot;>${initials}</span>'">`;
+}
+
+/* ---------------- API layer ---------------- */
+const memo = new Map();
+let PROVIDER = null;       // from /api/status
+async function api(path) {
+  const res = await fetch('/api/' + path, { headers: { Accept: 'application/json' } });
+  let body;
+  try { body = await res.json(); } catch { throw Object.assign(new Error('The server sent an unreadable response.'), { code: 'BAD_RESPONSE' }); }
+  if (!body.ok) throw Object.assign(new Error(body.error?.message || 'Request failed'), { code: body.error?.code || 'ERROR' });
+  memo.set(path, { t: Date.now(), body });
+  return body;
+}
+// Stale-while-revalidate: paint the last copy immediately, then refresh.
+async function load(path, paint, onError) {
+  const m = memo.get(path);
+  if (m) paint(m.body, true);
+  try { paint(await api(path), false); }
+  catch (e) { if (!m) onError(e); else toastFresh(e); }
+}
+
+/* ---------------- favourites ---------------- */
+const favKey = () => 'fav.' + (PROVIDER?.provider || 'none');
+let FAV = { teams: {}, comps: {} };
+const loadFav = () => { FAV = Object.assign({ teams: {}, comps: {} }, store.get(favKey(), {})); };
+const saveFav = () => store.set(favKey(), FAV);
+const isFav = (kind, id) => !!FAV[kind][id];
+function toggleFav(kind, id, meta) {
+  if (FAV[kind][id]) delete FAV[kind][id]; else FAV[kind][id] = meta;
+  saveFav();
+}
+function starBtn(kind, id, meta) {
+  const on = isFav(kind, id);
+  return `<button class="star ${on ? 'on' : ''}" data-fav="${kind}" data-id="${esc(id)}" data-meta="${esc(JSON.stringify(meta))}" aria-pressed="${on}" aria-label="${on ? 'Unfollow' : 'Follow'} ${esc(meta.name)}">${on ? IC.star : IC.starO}</button>`;
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-fav]');
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const kind = b.dataset.fav, id = b.dataset.id;
+  toggleFav(kind, id, JSON.parse(b.dataset.meta));
+  const on = isFav(kind, id);
+  document.querySelectorAll(`[data-fav="${kind}"][data-id="${CSS.escape(id)}"]`).forEach((x) => {
+    if (x.classList.contains('follow')) { x.classList.toggle('on', on); x.innerHTML = on ? 'Following' : '+ Follow'; }
+    else { x.classList.toggle('on', on); x.innerHTML = on ? IC.star : IC.starO; }
+    x.setAttribute('aria-pressed', on);
+  });
+});
+
+/* ---------------- recent matches ---------------- */
+function rememberMatch(m) {
+  const list = store.get('recent', []).filter((x) => x.id !== m.id);
+  list.unshift({ id: m.id, label: `${m.home.short} v ${m.away.short}`, kickoff: m.kickoff, provider: PROVIDER?.provider });
+  store.set('recent', list.slice(0, 8));
+}
+
+/* ---------------- match rendering ---------------- */
+const lastScores = new Map();
+function statusCell(m) {
+  if (m.state === 'pre') return `<div class="st num">${m.status === 'TBD' ? 'TBC' : esc(fmtTime(m.kickoff))}</div>`;
+  if (m.state === 'live') {
+    let t = m.status === 'HT' ? 'HT' : m.status === 'BT' ? 'Break' : m.status === 'P' ? 'Pens' : m.status === 'INT' ? 'Int.' : m.minute != null ? `${m.minute}${m.extra ? '+' + m.extra : ''}'` : 'Live';
+    return `<div class="st live num"><span class="pulse"></span><br>${esc(t)}</div>`;
+  }
+  if (m.state === 'off') return `<div class="st off">${esc(m.status === 'PST' ? 'Postp.' : m.status === 'CANC' ? 'Canc.' : m.status === 'ABD' ? 'Aband.' : m.status)}</div>`;
+  return `<div class="st">${esc(m.status)}</div>`;
+}
+function matchRow(m) {
+  const key = m.id + '';
+  const sig = m.score ? `${m.score.home}-${m.score.away}` : '';
+  const prev = lastScores.get(key);
+  const changed = prev !== undefined && prev !== sig && m.state === 'live';
+  lastScores.set(key, sig);
+  const hw = m.winner === 'home', aw = m.winner === 'away', done = m.state === 'post';
+  const sc = m.score
+    ? `<div class="sc num ${m.state === 'live' ? 'live' : ''}"><span>${m.score.home}${m.pen ? ` <span class="pen">(${m.pen.home})</span>` : ''}</span><span>${m.score.away}${m.pen ? ` <span class="pen">(${m.pen.away})</span>` : ''}</span></div>`
+    : '<div class="sc"></div>';
+  return `<a class="row ${m.state === 'live' ? 'live' : ''} ${changed ? 'flash' : ''}" href="#/match/${m.id}" aria-label="${esc(m.home.name)} versus ${esc(m.away.name)}">
+    ${statusCell(m)}
+    <div class="teams">
+      <div class="tm ${done && aw ? 'lose' : ''} ${done && hw ? 'win' : ''}">${crest(m.home.logo, m.home.name)}<span>${esc(m.home.name)}</span></div>
+      <div class="tm ${done && hw ? 'lose' : ''} ${done && aw ? 'win' : ''}">${crest(m.away.logo, m.away.name)}<span>${esc(m.away.name)}</span></div>
+    </div>${sc}</a>`;
+}
+function groupByComp(list) {
+  const g = new Map();
+  for (const m of list) {
+    const k = m.comp.id ?? m.comp.name;
+    if (!g.has(k)) g.set(k, { comp: m.comp, matches: [] });
+    g.get(k).matches.push(m);
+  }
+  return [...g.values()];
+}
+function compGroups(list, { star = true } = {}) {
+  return groupByComp(list).map(({ comp, matches }) => `
+    <section class="group">
+      <div class="group-h">
+        <a href="#/competition/${esc(comp.id)}" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+          ${crest(comp.logo, comp.name)}
+          <div class="t"><b>${esc(comp.name)}</b><small>${esc(comp.country)}</small></div>
+        </a>
+        ${star && comp.id != null ? starBtn('comps', comp.id, { name: comp.name, logo: comp.logo, country: comp.country }) : ''}
+      </div>
+      ${matches.map(matchRow).join('')}
+    </section>`).join('');
+}
+function freshLine(meta, { live = false } = {}) {
+  if (!meta) return '';
+  const age = Date.now() - meta.fetchedAt;
+  const warn = meta.stale || (live && age > CONFIG.STALE_AFTER_MS);
+  return `<div class="fresh ${warn ? 'warn' : ''}">${warn ? IC.warn.replace('<svg', '<svg width="14" height="14"') : ''}
+    ${warn ? 'Delayed — showing data from ' : 'Updated '}${esc(fmtTime(new Date(meta.fetchedAt).toISOString()))}${warn ? ' (' + esc(ago(meta.fetchedAt)) + ')' : ''}
+    ${live && !warn ? ' · refreshes automatically' : ''}</div>
+    ${meta.delayed && live ? `<div class="note">${IC.info}<span>Live scores on the current data plan can run a few minutes behind real time.</span></div>` : ''}`;
+}
+function emptyState(title, text, icon = IC.pitch, extra = '') {
+  return `<div class="empty">${icon}<div class="big">${esc(title)}</div><div>${esc(text)}</div>${extra}</div>`;
+}
+function errorState(e, retryHash) {
+  if (e.code === 'NOT_CONFIGURED') {
+    return emptyState('Data source not connected', 'SPL needs a football data provider key on the server before scores can appear. No scores are shown until real data is available.', IC.plug);
+  }
+  if (e.code === 'BUDGET') {
+    return emptyState('Back soon', 'Today’s free data for this league is used up. It refreshes automatically tomorrow.', IC.info);
+  }
+  if (e.code === 'RATE_LIMITED') {
+    return emptyState('Busy right now', 'Lots of fans are checking scores. Please try again in a minute.', IC.warn, `<div style="margin-top:18px"><button class="btn ghost" onclick="route()">Try again</button></div>`);
+  }
+  const retry = `<div style="margin-top:18px"><button class="btn ghost" onclick="route()">Try again</button></div>`;
+  return emptyState('Couldn’t load this', e.message || 'Please check your connection.', IC.warn, retry);
+}
+const skeleton = (n = 3) => Array.from({ length: n }, () => '<div class="skel"></div>').join('');
+function toastFresh() { const f = $('.fresh'); if (f) { f.classList.add('warn'); f.textContent = 'Couldn’t refresh — showing the last update'; } }
+
+/* ---------------- top bar / nav state ---------------- */
+function setTop(title) {
+  const top = $('#top');
+  top.classList.toggle('sub', !!title);
+  $('#topTitle').textContent = title || '';
+}
+function setTab(tab) {
+  document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
+}
+$('#backBtn').addEventListener('click', () => { if (history.length > 1) history.back(); else location.hash = '#/home'; });
+
+/* ---------------- refresh timers ---------------- */
+let timer = null;
+function every(ms, fn) {
+  clearInterval(timer);
+  timer = setInterval(() => { if (document.visibilityState === 'visible') fn(); }, ms);
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && timer) route(true); });
+
+/* =====================================================================
+   VIEWS
+   ===================================================================== */
+const state = { date: null, filter: 'all', liveComp: 'all', matchTab: 'summary', compTab: 'table', teamTab: 'matches', luSide: 'home' };
+
+/* ---------- Home ---------- */
+function viewHome(refresh) {
+  setTop(null); setTab('home');
+  const today = todayStr();
+  state.date = state.date || today;
+  const d = state.date;
+  if (!refresh) {
+    const days = [];
+    for (let i = -3; i <= 7; i++) {
+      const s = shiftDay(today, i);
+      const dt = new Date(s + 'T12:00:00Z');
+      const lbl = i === 0 ? 'Today' : i === -1 ? 'Yest.' : i === 1 ? 'Tmrw' : dt.toLocaleDateString([], { weekday: 'short', timeZone: 'UTC' });
+      days.push(`<button class="date ${s === d ? 'on' : ''}" data-date="${s}"><small>${esc(lbl)}</small><b class="num">${dt.getUTCDate()}</b></button>`);
+    }
+    const filters = [['all', 'All'], ['live', 'Live'], ['pre', 'Upcoming'], ['post', 'Finished']];
+    app.innerHTML = `<div class="view">
+      <div class="dates" id="dates">${days.join('')}</div>
+      <div class="chips" id="filters">${filters.map(([k, l]) => `<button class="chip ${state.filter === k ? 'on' : ''}" data-f="${k}">${l}<span class="c num" id="fc-${k}"></span></button>`).join('')}</div>
+      <div id="homeBody">${skeleton()}</div></div>`;
+    $('#dates .date.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    $('#dates').addEventListener('click', (e) => { const b = e.target.closest('[data-date]'); if (!b) return; state.date = b.dataset.date; viewHome(); });
+    $('#filters').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (!b) return; state.filter = b.dataset.f; document.querySelectorAll('#filters .chip').forEach((c) => c.classList.toggle('on', c === b)); paintHome(); });
+  }
+  load(`matches?date=${d}&tz=${encodeURIComponent(TZ)}`, (body) => { homeData = body; paintHome(); }, (e) => { $('#homeBody').innerHTML = errorState(e); });
+  every(d === today ? CONFIG.LIVE_REFRESH_MS : CONFIG.PAGE_REFRESH_MS, () => viewHome(true));
+}
+let homeData = null;
+function paintHome() {
+  const el = $('#homeBody');
+  if (!el || !homeData) return;
+  const all = homeData.data;
+  const counts = { all: all.length, live: 0, pre: 0, post: 0 };
+  all.forEach((m) => { if (counts[m.state] !== undefined) counts[m.state]++; });
+  Object.entries(counts).forEach(([k, v]) => { const c = $('#fc-' + k); if (c) c.textContent = v ? v : ''; });
+  const list = state.filter === 'all' ? all : all.filter((m) => m.state === state.filter);
+  const mine = list.filter((m) => isFav('teams', m.home.id) || isFav('teams', m.away.id) || isFav('comps', m.comp.id));
+  const rest = list.filter((m) => !mine.includes(m));
+  let html = '';
+  if (mine.length) html += `<div class="section-h"><h2>Following</h2></div>${compGroups(mine)}`;
+  if (rest.length) html += `${mine.length ? '<div class="section-h"><h2>All matches</h2></div>' : ''}${compGroups(rest)}`;
+  if (!list.length) {
+    html = all.length
+      ? emptyState('Nothing in this filter', 'Try another filter for this day.')
+      : emptyState('No matches this day', 'No fixtures from the covered competitions are scheduled for this date.');
+  }
+  el.innerHTML = freshLine(homeData.meta, { live: state.date === todayStr() }) + html + footer();
+}
+
+/* ---------- Live ---------- */
+let liveData = null;
+function viewLive(refresh) {
+  setTop(null); setTab('live');
+  if (!refresh) app.innerHTML = `<div class="view"><div class="chips" id="liveChips"></div><div id="liveBody">${skeleton()}</div></div>`;
+  load('live', (body) => { liveData = body; paintLive(); updateLiveBadge(body.data.length); }, (e) => { $('#liveBody').innerHTML = errorState(e); });
+  every(CONFIG.LIVE_REFRESH_MS, () => viewLive(true));
+}
+function paintLive() {
+  const el = $('#liveBody'); if (!el || !liveData) return;
+  const all = liveData.data;
+  const comps = groupByComp(all).map((g) => g.comp);
+  const countries = [...new Set(all.map((m) => m.comp.country).filter(Boolean))];
+  const chips = [['all', `All · ${all.length}`]]
+    .concat(comps.map((c) => ['c:' + c.id, c.name]))
+    .concat(countries.length > 1 ? countries.map((c) => ['n:' + c, c]) : []);
+  if (!chips.some(([k]) => k === state.liveComp)) state.liveComp = 'all';
+  $('#liveChips').innerHTML = all.length ? chips.map(([k, l]) => `<button class="chip ${state.liveComp === k ? 'on' : ''}" data-k="${esc(k)}">${esc(l)}</button>`).join('') : '';
+  $('#liveChips').onclick = (e) => { const b = e.target.closest('[data-k]'); if (!b) return; state.liveComp = b.dataset.k; paintLive(); };
+  const f = state.liveComp;
+  const list = f === 'all' ? all : f.startsWith('c:') ? all.filter((m) => String(m.comp.id) === f.slice(2)) : all.filter((m) => m.comp.country === f.slice(2));
+  el.innerHTML = freshLine(liveData.meta, { live: true }) +
+    (list.length ? compGroups(list) : emptyState('No live matches right now', 'Matches from the covered competitions appear here the moment they kick off.', IC.pitch,
+      '<div style="margin-top:18px"><a class="btn ghost" href="#/home">See today’s fixtures</a></div>')) + footer();
+}
+function updateLiveBadge(n) {
+  const b = $('#liveCount'); b.textContent = n > 99 ? '99+' : n; b.classList.toggle('show', n > 0);
+}
+
+/* ---------- Competitions ---------- */
+function viewCompetitions() {
+  setTop(null); setTab('competitions'); clearInterval(timer);
+  app.innerHTML = `<div class="view" id="compsBody">${skeleton(4)}</div>`;
+  load('competitions', (body) => {
+    const list = body.data;
+    const groups = [...new Set(list.map((c) => c.group))];
+    const covered = list.filter((c) => c.covered);
+    const favs = covered.filter((c) => isFav('comps', c.id));
+    let html = '';
+    if (favs.length) html += `<div class="section-h"><h2>Following</h2></div><div class="list">${favs.map(compItem).join('')}</div>`;
+    for (const g of groups) {
+      const items = list.filter((c) => c.group === g);
+      html += `<div class="section-h"><h2>${esc(g)}</h2></div><div class="list">${items.map(compItem).join('')}</div>`;
+    }
+    const missing = list.length - covered.length;
+    if (missing) html = `<div class="note">${IC.info}<span>${covered.length} competitions are live on the current data plan. ${missing} more (marked below) unlock when SPL moves to a provider plan that includes them.</span></div>` + html;
+    $('#compsBody').innerHTML = html + footer();
+  }, (e) => { $('#compsBody').innerHTML = errorState(e); });
+}
+function compItem(c) {
+  if (!c.covered) return `<div class="li dis">${crest(null, c.name)}<div class="t"><b>${esc(c.name)}</b><small>${esc(c.country)}</small></div><span class="tag">Not in data plan</span></div>`;
+  return `<a class="li" href="#/competition/${c.id}">${crest(c.logo, c.name)}<div class="t"><b>${esc(c.name)}</b><small>${esc(c.country)}</small></div>${starBtn('comps', c.id, { name: c.name, country: c.country, logo: c.logo })}${IC.chev}</a>`;
+}
+
+/* ---------- Competition page ---------- */
+const ZONES = [
+  [/champions league|promotion|libertadores|elite/i, 'var(--blue)'],
+  [/europa|confederation|sudamericana/i, 'var(--orange)'],
+  [/conference|play-?off|qualif/i, 'var(--teal)'],
+  [/relegat/i, 'var(--red)'],
+  [/next round|knockout|round of|1\/8/i, 'var(--green)'],
+];
+const zoneColor = (z) => { if (!z) return null; for (const [re, c] of ZONES) if (re.test(z)) return c; return 'var(--muted)'; };
+
+function viewCompetition(id, refresh) {
+  setTab('competitions');
+  if (!refresh) {
+    setTop('Competition');
+    app.innerHTML = `<div class="view"><div id="compHead">${skeleton(1)}</div>
+      <div class="tabs" id="compTabs">${[['table', 'Table'], ['matches', 'Matches'], ['scorers', 'Top scorers']].map(([k, l]) => `<button class="tab ${state.compTab === k ? 'on' : ''}" data-t="${k}">${l}</button>`).join('')}</div>
+      <div id="compBody" class="panel">${skeleton(2)}</div></div>`;
+    $('#compTabs').onclick = (e) => { const b = e.target.closest('[data-t]'); if (!b) return; state.compTab = b.dataset.t; document.querySelectorAll('#compTabs .tab').forEach((t) => t.classList.toggle('on', t === b)); paintCompTab(id); };
+  }
+  load(`competition/${id}`, (body) => {
+    const c = body.data;
+    setTop(c.name);
+    $('#compHead').innerHTML = `<div class="ent">${crest(c.logo, c.name)}<div class="t"><h1>${esc(c.name)}</h1><p>${esc([c.country, c.season && 'Season ' + c.season, c.currentRound].filter(Boolean).join(' · '))}</p></div>
+      <button class="follow ${isFav('comps', c.id) ? 'on' : ''}" data-fav="comps" data-id="${c.id}" data-meta="${esc(JSON.stringify({ name: c.name, logo: c.logo, country: c.country }))}">${isFav('comps', c.id) ? 'Following' : '+ Follow'}</button></div>`;
+    compCache = body;
+    if (state.compTab === 'table') paintCompTab(id);
+  }, (e) => { $('#compHead').innerHTML = ''; $('#compBody').innerHTML = errorState(e); });
+  if (state.compTab !== 'table') paintCompTab(id);
+  every(CONFIG.PAGE_REFRESH_MS, () => paintCompTab(id));
+}
+let compCache = null;
+function paintCompTab(id) {
+  const el = $('#compBody'); if (!el) return;
+  if (state.compTab === 'table') {
+    if (!compCache || String(compCache.data.id) !== String(id)) return;
+    const c = compCache.data;
+    if (!c.standings.length) { el.innerHTML = emptyState('No table available', c.standingsAvailable === false ? 'This competition has no league table from the data provider.' : 'The data provider has not published standings for this season yet.'); return; }
+    el.innerHTML = freshLine(compCache.meta) + standingsHtml(c) + footer();
+  } else if (state.compTab === 'matches') {
+    load(`competition/${id}/matches`, (body) => {
+      if (state.compTab !== 'matches') return;
+      const list = body.data;
+      if (!list.length) { el.innerHTML = emptyState('No matches in this window', 'Nothing scheduled from 10 days ago to 2 weeks ahead.'); return; }
+      const byDay = new Map();
+      for (const m of list) { const k = ymd(new Date(m.kickoff)); if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(m); }
+      const today = todayStr();
+      el.innerHTML = freshLine(body.meta, { live: list.some((m) => m.state === 'live') }) + [...byDay].map(([k, ms]) => `<div class="section-h"><h2>${k === today ? 'Today' : esc(fmtDate(ms[0].kickoff))}</h2></div><section class="group">${ms.map(matchRow).join('')}</section>`).join('') + footer();
+      $(`#compBody .section-h h2`)?.closest('.section-h');
+    }, (e) => { el.innerHTML = errorState(e); });
+  } else {
+    load(`competition/${id}/scorers`, (body) => {
+      if (state.compTab !== 'scorers') return;
+      const list = body.data;
+      if (!list.length) { el.innerHTML = emptyState('No scorer data yet', 'The data provider hasn’t published top scorers for this season.'); return; }
+      el.innerHTML = freshLine(body.meta) + `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th style="text-align:left">Player</th><th>Goals</th><th>Ast</th><th class="hide-s">Pens</th><th class="hide-s">Apps</th></tr></thead><tbody>
+        ${list.map((s) => `<tr><td class="pos">${s.rank}</td><td class="tm-c"><a href="#/team/${s.team.id}">${crest(s.team.logo, s.team.name)}<span><b style="font-weight:600">${esc(s.player.name)}</b><br><small style="color:var(--muted)">${esc(s.team.name)}</small></span></a></td>
+        <td class="pts">${s.goals ?? '<span class="na">—</span>'}</td><td>${s.assists ?? '<span class="na">—</span>'}</td><td class="hide-s">${s.penalties ?? '<span class="na">—</span>'}</td><td class="hide-s">${s.played ?? '<span class="na">—</span>'}</td></tr>`).join('')}
+        </tbody></table></div><div class="fresh">— means the provider doesn’t supply that figure (not zero).</div>` + footer();
+    }, (e) => { el.innerHTML = errorState(e); });
+  }
+}
+
+function standingsHtml(c) {
+    const zones = new Map();
+    const html = c.standings.map((g) => `<div class="tbl-wrap">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}
+      <table class="tbl"><thead><tr><th>#</th><th style="text-align:left">Team</th><th>P</th><th class="hide-s">W</th><th class="hide-s">D</th><th class="hide-s">L</th><th>GD</th><th>Pts</th><th class="hide-s">Form</th></tr></thead><tbody>
+      ${g.rows.map((r) => { const zc = zoneColor(r.zone); if (zc && r.zone) zones.set(r.zone, zc); return `<tr class="${isFav('teams', r.team.id) ? 'fav' : ''}">
+        <td class="pos">${zc ? `<i style="background:${zc}"></i>` : ''}${r.rank}</td>
+        <td class="tm-c"><a href="#/team/${r.team.id}">${crest(r.team.logo, r.team.name)}<span>${esc(r.team.short || r.team.name)}</span></a></td>
+        <td>${r.played ?? '—'}</td><td class="hide-s">${r.won ?? '—'}</td><td class="hide-s">${r.drawn ?? '—'}</td><td class="hide-s">${r.lost ?? '—'}</td>
+        <td>${r.gd == null ? '—' : r.gd > 0 ? '+' + r.gd : r.gd}</td><td class="pts">${r.points ?? '—'}</td>
+        <td class="hide-s">${r.form ? `<div class="form">${r.form.slice(-5).map((x) => `<i class="${esc(x)}">${esc(x)}</i>`).join('')}</div>` : '<span class="na">—</span>'}</td></tr>`; }).join('')}
+      </tbody></table></div>`).join('');
+    const legend = zones.size ? `<div class="tbl-wrap"><div class="legend" style="border:0">${[...zones].map(([z, col]) => `<span><i style="background:${col}"></i>${esc(z)}</span>`).join('')}</div></div>`
+      : c.zonesAvailable === false ? `<div class="note">${IC.info}<span>Qualification and relegation zones aren’t supplied by the current data plan, so none are marked.</span></div>` : '';
+  return html + legend;
+}
+
+/* ---------- Match centre ---------- */
+let matchData = null;
+function viewMatch(id, refresh) {
+  setTab(null);
+  if (!refresh) {
+    setTop('Match');
+    app.innerHTML = `<div class="view"><div id="mHero">${skeleton(1)}</div><div class="tabs" id="mTabs"></div><div id="mBody" class="panel"></div></div>`;
+    $('#mTabs').onclick = (e) => { const b = e.target.closest('[data-t]'); if (!b) return; state.matchTab = b.dataset.t; paintMatchTabs(); paintMatchBody(id); };
+  }
+  load(`match/${id}`, (body) => {
+    const first = !matchData || matchData.data.id !== body.data.id;
+    matchData = body;
+    if (first) { rememberMatch(body.data); if (!refresh) state.matchTab = 'summary'; }
+    paintHero(); paintMatchTabs(); paintMatchBody(id);
+    every(body.data.state === 'live' ? CONFIG.LIVE_REFRESH_MS : body.data.state === 'pre' ? CONFIG.PAGE_REFRESH_MS : 10 * 60000, () => viewMatch(id, true));
+  }, (e) => { $('#mHero').innerHTML = errorState(e); });
+}
+function paintHero() {
+  const m = matchData.data;
+  setTop(`${m.home.short} v ${m.away.short}`);
+  let mid;
+  if (m.score) {
+    mid = `<div class="big-score num ${m.state === 'live' ? 'live' : ''}"><span>${m.score.home}</span><span class="dash">–</span><span>${m.score.away}</span></div>`;
+  } else {
+    mid = `<div class="kick num">${m.status === 'TBD' ? 'TBC' : esc(fmtTime(m.kickoff))}</div>`;
+  }
+  let pill;
+  if (m.state === 'live') pill = `<span class="pill live"><span class="pulse"></span>${m.status === 'HT' ? 'Half-time' : m.minute != null && !['BT', 'P', 'INT'].includes(m.status) ? esc(m.minute + (m.extra ? '+' + m.extra : '') + "'") : esc(m.statusLabel)}</span>`;
+  else if (m.state === 'off') pill = `<span class="pill off">${esc(m.statusLabel)}</span>`;
+  else if (m.state === 'post') pill = `<span class="pill">${esc(m.statusLabel)}</span>`;
+  else pill = `<span class="pill">${esc(fmtDate(m.kickoff, { weekday: 'long', day: 'numeric', month: 'short' }))}</span>`;
+  const subs = [];
+  if (m.ht && m.state !== 'pre') subs.push(`HT ${m.ht.home}–${m.ht.away}`);
+  if (m.pen) subs.push(`Pens ${m.pen.home}–${m.pen.away}`);
+  const side = (t) => `<a class="side" href="#/team/${t.id}">${crest(t.logo, t.name)}<b>${esc(t.name)}</b></a>`;
+  $('#mHero').innerHTML = `<div class="hero">
+    <a class="comp" href="#/competition/${esc(m.comp.id)}">${crest(m.comp.logo, m.comp.name)}<span>${esc(m.comp.name)}${m.comp.round ? ' · ' + esc(m.comp.round) : ''}</span></a>
+    <div class="board">${side(m.home)}<div class="mid">${mid}${pill}${subs.length ? `<div class="sub-line num">${esc(subs.join(' · '))}</div>` : ''}</div>${side(m.away)}</div>
+  </div>`;
+}
+function paintMatchTabs() {
+  const tabs = [['summary', 'Summary'], ['lineups', 'Line-ups'], ['stats', 'Stats'], ['h2h', 'Head-to-head'], ['info', 'Info']];
+  $('#mTabs').innerHTML = tabs.map(([k, l]) => `<button class="tab ${state.matchTab === k ? 'on' : ''}" data-t="${k}">${l}</button>`).join('');
+}
+function unavailable(what, m) {
+  const reason = m.notes && m.notes.length ? m.notes[0] : `The data provider doesn’t supply ${what} for this match.`;
+  return emptyState(`${what[0].toUpperCase() + what.slice(1)} unavailable`, reason, IC.info);
+}
+function paintMatchBody(id) {
+  const el = $('#mBody'); const m = matchData.data;
+  const meta = freshLine(matchData.meta, { live: m.state === 'live' });
+  const t = state.matchTab;
+  if (t === 'summary') {
+    if (m.events === null) { el.innerHTML = meta + (m.state === 'pre' ? emptyState('Not started yet', `Kick-off ${fmtDate(m.kickoff)} at ${fmtTime(m.kickoff)}. Events appear here once the match begins.`, IC.pitch) : unavailable('match events', m)) + footer(); return; }
+    if (!m.events.length) { el.innerHTML = meta + emptyState(m.state === 'pre' ? 'Not started yet' : 'No events yet', m.state === 'pre' ? 'Goals, cards and substitutions appear here live.' : 'No goals, cards or substitutions have been recorded.') + footer(); return; }
+    let html = '', htDone = false;
+    const evs = m.state === 'live' ? [...m.events].reverse() : m.events;
+    for (const e of evs) {
+      const second = (e.minute ?? 0) > 45;
+      if (!htDone && m.state !== 'live' && second) { html += `<div class="ev-break"><span>HALF-TIME${m.ht ? ' ' + m.ht.home + '–' + m.ht.away : ''}</span></div>`; htDone = true; }
+      html += evRow(e);
+    }
+    el.innerHTML = meta + `<div class="tl">${html}</div>` + footer();
+  } else if (t === 'lineups') {
+    if (!m.lineups) { el.innerHTML = meta + (m.state === 'pre' && m.capabilities?.lineups !== false ? emptyState('Line-ups not announced', 'Teams usually confirm line-ups about an hour before kick-off.', IC.pitch) : unavailable('line-ups', m)) + footer(); return; }
+    const L = m.lineups[state.luSide] || m.lineups.home;
+    const team = state.luSide === 'home' ? m.home : m.away;
+    const toggle = `<div class="chips" id="luSide">${['home', 'away'].map((s) => `<button class="chip ${state.luSide === s ? 'on' : ''}" data-s="${s}">${esc(m[s].name)}</button>`).join('')}</div>`;
+    if (!L) { el.innerHTML = meta + toggle + unavailable('line-ups', m); bindLu(id); return; }
+    const hasGrid = L.start.every((p) => p.grid && /^\d+:\d+$/.test(p.grid));
+    el.innerHTML = meta + toggle + `<div class="lu-meta" style="margin-top:12px"><span style="display:flex;align-items:center;gap:8px">${crest(team.logo, team.name)}${L.coach ? 'Coach: ' + esc(L.coach) : ''}</span><b>${esc(L.formation || '')}</b></div>` +
+      (hasGrid ? pitchSvg(L.start) : '') +
+      `<div class="plist">${hasGrid ? '' : '<h4>Starting XI</h4>' + L.start.map(pRow).join('')}${L.subs.length ? '<h4>Substitutes</h4>' + L.subs.map(pRow).join('') : ''}</div>` + footer();
+    bindLu(id);
+  } else if (t === 'stats') {
+    if (!m.stats) { el.innerHTML = meta + (m.state === 'pre' ? emptyState('Not started yet', 'Match statistics appear once the game is under way.', IC.pitch) : unavailable('match statistics', m)) + footer(); return; }
+    el.innerHTML = meta + `<div class="stats"><div class="lbl" style="display:grid;grid-template-columns:1fr 1fr;padding:10px 0;font-weight:700"><span>${esc(m.home.short)}</span><span style="text-align:right">${esc(m.away.short)}</span></div>${m.stats.map(statRow).join('')}</div>
+      <div class="fresh">— means the provider didn’t supply that figure; 0 means a genuine zero.</div>` + footer();
+  } else if (t === 'h2h') {
+    el.innerHTML = skeleton(1);
+    load(`match/${id}/h2h`, (body) => {
+      if (state.matchTab !== 'h2h') return;
+      const h = body.data;
+      if (!h.matches.length) { el.innerHTML = emptyState('No previous meetings found', 'The data provider has no earlier matches between these teams.'); return; }
+      const s = h.summary;
+      const draws = s ? (s.draws ?? s.home.draws ?? 0) : null;
+      el.innerHTML = (s ? `<div class="h2h-sum num"><div><b>${s.home.wins ?? '—'}</b><small>${esc(m.home.short)} wins</small></div><div><b>${draws ?? '—'}</b><small>Draws</small></div><div><b>${s.away.wins ?? '—'}</b><small>${esc(m.away.short)} wins</small></div></div>
+        <div class="fresh" style="padding-top:0">Last ${s.played} meetings available from the data provider</div>` : '') +
+        groupByComp(h.matches).map((g) => `<section class="group"><div class="group-h">${crest(g.comp.logo, g.comp.name)}<div class="t"><b>${esc(g.comp.name)}</b></div></div>${g.matches.map((x) => matchRow(x).replace('<div class="st">', `<div class="st" style="font-size:11px">${esc(fmtDate(x.kickoff, { day: 'numeric', month: 'short', year: '2-digit' }))}<br>`)).join('')}</section>`).join('') + footer();
+    }, (e) => { el.innerHTML = errorState(e); });
+  } else {
+    const rows = [
+      ['Competition', m.comp.name], ['Round', m.comp.round],
+      ['Kick-off', `${fmtDate(m.kickoff, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}, ${fmtTime(m.kickoff)}`],
+      ['Your time zone', TZ], ['Status', m.statusLabel], ['Venue', m.venue], ['Referee', m.referee],
+    ];
+    el.innerHTML = `<div class="kv">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><b>${v ? esc(v) : '<span class="na">Not provided</span>'}</b></div>`).join('')}</div>` + footer();
+  }
+}
+function bindLu(id) { const s = $('#luSide'); if (s) s.onclick = (e) => { const b = e.target.closest('[data-s]'); if (!b) return; state.luSide = b.dataset.s; paintMatchBody(id); }; }
+function pRow(p) { return `<div class="p"><span class="no num">${p.number ?? ''}</span><span>${esc(p.name)}</span><span class="pos">${esc(posName(p.pos))}</span></div>`; }
+function posName(p) { return ({ G: 'Goalkeeper', D: 'Defender', M: 'Midfielder', F: 'Forward' })[p] || p || ''; }
+function pitchSvg(players) {
+  const rows = Math.max(...players.map((p) => +p.grid.split(':')[0]));
+  const byRow = {};
+  players.forEach((p) => { const r = +p.grid.split(':')[0]; (byRow[r] = byRow[r] || []).push(p); });
+  const html = players.map((p) => {
+    const [r, c] = p.grid.split(':').map(Number);
+    const n = byRow[r].length;
+    const y = 92 - ((r - 1) / Math.max(rows - 1, 1)) * 80;
+    const x = (100 / (n + 1)) * (n + 1 - c);
+    const short = p.name.split(' ').slice(-1)[0];
+    return `<div class="pl ${r === 1 ? 'gk' : ''}" style="left:${x}%;top:${y}%"><span class="n num">${p.number ?? ''}</span><span class="nm">${esc(short)}</span></div>`;
+  }).join('');
+  return `<div class="pitch"><svg class="lines" viewBox="0 0 68 80" preserveAspectRatio="none" fill="none" stroke="rgba(255,255,255,.22)" stroke-width=".35"><rect x="2" y="2" width="64" height="76"/><path d="M2 2h64"/><circle cx="34" cy="2" r="9"/><rect x="14" y="62" width="40" height="16"/><rect x="25" y="72" width="18" height="6"/><path d="M27 62a8 8 0 0014 0"/></svg>${html}</div>`;
+}
+function evRow(e) {
+  let icon = '', main = '', sub = '';
+  switch (e.type) {
+    case 'goal': icon = IC.ball; main = e.player || 'Goal'; sub = e.assist ? 'Assist: ' + e.assist : ''; break;
+    case 'penalty': icon = IC.ball; main = e.player || 'Penalty'; sub = 'Penalty'; break;
+    case 'own_goal': icon = IC.ball.replace('currentColor" stroke-width', '#FF4D5E" stroke-width'); main = e.player || 'Own goal'; sub = 'Own goal'; break;
+    case 'missed_penalty': icon = IC.miss; main = e.player || 'Penalty missed'; sub = 'Penalty missed'; break;
+    case 'yellow': icon = '<span class="card-y"></span>'; main = e.player || 'Yellow card'; break;
+    case 'second_yellow': icon = '<span class="card-yr"></span>'; main = e.player || 'Second yellow'; sub = 'Second yellow — sent off'; break;
+    case 'red': icon = '<span class="card-r"></span>'; main = e.player || 'Red card'; sub = 'Sent off'; break;
+    case 'sub':
+      if (e.pair) { icon = IC.swap; main = e.pair.filter(Boolean).join(' ⇄ ') || 'Substitution'; sub = 'Substitution'; }
+      else { icon = IC.sub; main = e.playerIn ? 'On: ' + e.playerIn : 'Substitution'; sub = e.playerOut ? 'Off: ' + e.playerOut : ''; }
+      break;
+    case 'var': icon = IC.var; main = e.note || 'VAR review'; sub = e.player || ''; break;
+    default: icon = IC.info.replace('<svg', '<svg width="18" height="18"'); main = e.note || 'Event'; sub = e.player || '';
+  }
+  const isGoal = ['goal', 'penalty', 'own_goal'].includes(e.type);
+  const tx = `<span class="tx"><b>${esc(main)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${isGoal && e.score ? `<small class="num">${e.score.home}–${e.score.away}</small>` : ''}</span>`;
+  const min = e.minute != null ? `${e.minute}${e.extra ? '+' + e.extra : ''}'` : '';
+  const L = e.side === 'home' ? `<div class="who L">${tx}<span class="ic">${icon}</span></div>` : '<div></div>';
+  const R = e.side === 'away' ? `<div class="who R"><span class="ic">${icon}</span>${tx}</div>` : '<div></div>';
+  return `<div class="ev ${isGoal ? 'goal' : ''}">${L}<span class="min num">${esc(min)}</span>${R}</div>`;
+}
+function statRow(s) {
+  const h = s.home, a = s.away;
+  const u = s.unit || '';
+  const fmt = (v) => (v === null ? '<span class="na">—</span>' : esc(v + u));
+  let bars = '';
+  if (h !== null && a !== null) {
+    const tot = s.unit === '%' ? 100 : (h + a) || 0;
+    const hp = tot ? (h / tot) * 100 : 0, ap = tot ? (a / tot) * 100 : 0;
+    bars = `<div class="bars"><div class="bar l"><i class="${h > a ? 'lead' : ''}" style="width:${hp}%"></i></div><div class="bar r"><i class="${a > h ? 'lead' : ''}" style="width:${ap}%"></i></div></div>`;
+  }
+  return `<div class="stat"><div class="lbl num"><b>${fmt(h)}</b><span>${esc(s.label)}</span><b>${fmt(a)}</b></div>${bars}</div>`;
+}
+
+/* ---------- Team page ---------- */
+let teamData = null;
+function viewTeam(id, refresh) {
+  setTab(null);
+  if (!refresh) {
+    setTop('Team');
+    app.innerHTML = `<div class="view"><div id="tHead">${skeleton(1)}</div><div class="tabs" id="tTabs">${[['matches', 'Matches'], ['squad', 'Squad'], ['about', 'About']].map(([k, l]) => `<button class="tab ${state.teamTab === k ? 'on' : ''}" data-t="${k}">${l}</button>`).join('')}</div><div id="tBody" class="panel">${skeleton(2)}</div></div>`;
+    $('#tTabs').onclick = (e) => { const b = e.target.closest('[data-t]'); if (!b) return; state.teamTab = b.dataset.t; document.querySelectorAll('#tTabs .tab').forEach((t) => t.classList.toggle('on', t === b)); paintTeam(); };
+  }
+  load(`team/${id}`, (body) => {
+    teamData = body; const t = body.data;
+    setTop(t.short || t.name);
+    $('#tHead').innerHTML = `<div class="ent">${crest(t.logo, t.name)}<div class="t"><h1>${esc(t.name)}</h1><p>${esc([t.country, t.coach && 'Coach: ' + t.coach].filter(Boolean).join(' · '))}</p></div>
+      <button class="follow ${isFav('teams', t.id) ? 'on' : ''}" data-fav="teams" data-id="${t.id}" data-meta="${esc(JSON.stringify({ name: t.name, logo: t.logo, country: t.country }))}">${isFav('teams', t.id) ? 'Following' : '+ Follow'}</button></div>`;
+    paintTeam();
+  }, (e) => { $('#tHead').innerHTML = ''; $('#tBody').innerHTML = errorState(e); });
+  every(CONFIG.PAGE_REFRESH_MS, () => viewTeam(id, true));
+}
+function paintTeam() {
+  const el = $('#tBody'); if (!el || !teamData) return;
+  const t = teamData.data;
+  if (state.teamTab === 'matches') {
+    const up = t.upcoming || [], rec = t.recent || [];
+    el.innerHTML = freshLine(teamData.meta, { live: up.some((m) => m.state === 'live') }) +
+      (up.length ? `<div class="section-h"><h2>Upcoming</h2></div>${up.map((m) => `<section class="group"><div class="group-h">${crest(m.comp.logo, m.comp.name)}<div class="t"><b>${esc(m.comp.name)}</b><small>${esc(fmtDate(m.kickoff))}</small></div></div>${matchRow(m)}</section>`).join('')}` : '') +
+      (rec.length ? `<div class="section-h"><h2>Recent results</h2></div>${rec.map((m) => `<section class="group"><div class="group-h">${crest(m.comp.logo, m.comp.name)}<div class="t"><b>${esc(m.comp.name)}</b><small>${esc(fmtDate(m.kickoff))}</small></div></div>${matchRow(m)}</section>`).join('')}` : '') +
+      (!up.length && !rec.length ? emptyState('No matches found', 'The data provider has no recent or upcoming matches for this team.') : '') + footer();
+  } else if (state.teamTab === 'squad') {
+    if (!t.squad.length) { el.innerHTML = emptyState('Squad not available', 'The current data plan doesn’t include this squad list.', IC.info); return; }
+    const order = ['Goalkeeper', 'Defence', 'Defender', 'Midfield', 'Midfielder', 'Offence', 'Attacker', 'Forward'];
+    const groups = {};
+    t.squad.forEach((p) => { const k = p.pos || 'Other'; (groups[k] = groups[k] || []).push(p); });
+    const keys = Object.keys(groups).sort((a, b) => (order.indexOf(a) + 99) % 99 - (order.indexOf(b) + 99) % 99);
+    el.innerHTML = `<div class="plist">${keys.map((k) => `<h4>${esc(k)}</h4>` + groups[k].map((p) => `<div class="p"><span class="no num">${p.number ?? ''}</span><span>${esc(p.name)}</span><span class="pos">${esc([p.nationality, p.age != null && p.age + ' yrs'].filter(Boolean).join(' · '))}</span></div>`).join('')).join('')}</div>
+` + footer();
+  } else {
+    const rows = [['Country', t.country], ['Founded', t.founded], ['Stadium', t.venue], ['Coach', t.coach], ['Website', t.website]];
+    el.innerHTML = `<div class="kv">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><b>${v ? esc(v) : '<span class="na">Not provided</span>'}</b></div>`).join('')}</div>` +
+      (t.competitions && t.competitions.length ? `<div class="section-h"><h2>Competitions</h2></div><div class="list">${t.competitions.map((c) => `<a class="li" href="#/competition/${c.id}">${crest(c.logo, c.name)}<div class="t"><b>${esc(c.name)}</b></div>${IC.chev}</a>`).join('')}</div>` : '') + footer();
+  }
+}
+
+/* ---------- Tables (all league tables in one place) ---------- */
+let tablesList = null;
+function viewTables(refresh) {
+  setTop(null); setTab('tables');
+  if (!refresh) app.innerHTML = `<div class="view"><div class="chips" id="tblChips">${'<span class="chip">Loading…</span>'}</div><div id="tblHead"></div><div id="tblBody">${skeleton(2)}</div></div>`;
+  load('competitions', (body) => {
+    const covered = body.data.filter((c) => c.covered && c.id != null);
+    const favs = covered.filter((c) => isFav('comps', c.id));
+    tablesList = [...favs, ...covered.filter((c) => !isFav('comps', c.id))];
+    let sel = store.get('tablesComp', null);
+    if (!tablesList.some((c) => String(c.id) === String(sel))) sel = tablesList[0] && tablesList[0].id;
+    $('#tblChips').innerHTML = tablesList.map((c) => `<button class="chip ${String(c.id) === String(sel) ? 'on' : ''}" data-c="${esc(c.id)}">${isFav('comps', c.id) ? '★ ' : ''}${esc(c.name)}</button>`).join('');
+    $('#tblChips').onclick = (e) => {
+      const b = e.target.closest('[data-c]'); if (!b) return;
+      store.set('tablesComp', b.dataset.c);
+      document.querySelectorAll('#tblChips .chip').forEach((x) => x.classList.toggle('on', x === b));
+      paintTable(b.dataset.c);
+    };
+    $('#tblChips .chip.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    if (sel != null) paintTable(sel); else $('#tblBody').innerHTML = emptyState('No tables yet', 'League tables appear once a data source is connected.');
+  }, (e) => { $('#tblBody').innerHTML = errorState(e); });
+  every(CONFIG.PAGE_REFRESH_MS, () => { const s = store.get('tablesComp', null); if (s) paintTable(s, true); });
+}
+function paintTable(id, quiet) {
+  if (!quiet) { $('#tblHead').innerHTML = ''; $('#tblBody').innerHTML = skeleton(1); }
+  load(`competition/${id}`, (body) => {
+    if (String(store.get('tablesComp', id)) !== String(id) && !quiet) return;
+    const c = body.data;
+    $('#tblHead').innerHTML = `<a class="tbl-head" href="#/competition/${esc(c.id)}">${crest(c.logo, c.name)}<div class="t"><b>${esc(c.name)}</b><small>${esc([c.country, c.season && 'Season ' + c.season].filter(Boolean).join(' · '))}</small></div><span class="more">Matches & scorers ${IC.chev}</span></a>`;
+    $('#tblBody').innerHTML = freshLine(body.meta) + (c.standings.length ? standingsHtml(c)
+      : emptyState('No table available', 'The data provider has not published standings for this competition yet.')) + footer();
+  }, (e) => { $('#tblBody').innerHTML = errorState(e); });
+}
+
+/* ---------- Privacy Policy & Terms of Use (in-app, no external links) ---------- */
+const LEGAL_UPDATED = '11 October 2026';
+const LEGAL = {
+  privacy: { title: 'Privacy Policy', body: `
+    <p>SPL (“we”, “the app”), available at spl.pi, is a football scores app for the Pi Network. This policy explains what information SPL uses and why. We keep it to the minimum the app needs.</p>
+    <h3>1. Information we use</h3>
+    <ul>
+      <li><b>Pi account (only if you sign in):</b> your Pi username and a Pi user ID, provided by Pi Network when you choose “Sign in with Pi”. We use them to show your name and to process Pi payments. We do not receive your password, wallet passphrase or KYC details.</li>
+      <li><b>Pi payments (only if you pay):</b> the payment ID, amount, blockchain transaction ID and your Pi user ID, so that the payment can be approved and completed with Pi Network.</li>
+      <li><b>Saved on your device only:</b> the teams and competitions you follow, recently viewed matches and your settings (such as 24-hour clock). These stay in your phone’s browser storage and are not sent to us.</li>
+    </ul>
+    <h3>2. What we do not do</h3>
+    <ul>
+      <li>No advertising, no tracking or analytics tools, and no selling or sharing of personal information.</li>
+      <li>No email, phone number or location is collected.</li>
+    </ul>
+    <h3>3. Service providers</h3>
+    <ul>
+      <li><b>Pi Network</b> — sign-in and payments, under Pi Network’s own privacy policy.</li>
+      <li><b>Cloudflare</b> — hosts SPL. Like any web host it processes technical data such as IP addresses to deliver the app. Short-lived server logs record sign-in and payment steps (Pi user ID, username, payment and transaction IDs) so we can fix problems; they are not used for anything else.</li>
+      <li><b>Football data providers</b> (football-data.org and API-Football) — our server requests match data from them. No personal information about you is sent.</li>
+      <li><b>Google Fonts</b> — the scoreboard font is loaded from Google, which receives standard technical data such as your IP address.</li>
+    </ul>
+    <h3>4. Your choices</h3>
+    <ul>
+      <li>You can use SPL without signing in.</li>
+      <li>“Sign out” in My Football removes your Pi session from the app. Clearing the app’s data in your browser removes your follows and settings.</li>
+      <li>For any privacy question or request, email <b>support.spl.pi@gmail.com</b>.</li>
+    </ul>
+    <h3>5. Children</h3>
+    <p>SPL shows general football information and is not directed at children. Pi Network sets its own age requirements for Pi accounts.</p>
+    <h3>6. Changes</h3>
+    <p>If this policy changes, the updated version will appear here with a new date.</p>` },
+  terms: { title: 'Terms of Use', body: `
+    <p>By using SPL (spl.pi) you agree to these terms. If you do not agree, please do not use the app.</p>
+    <h3>1. The service</h3>
+    <p>SPL provides football scores, fixtures, results, league tables and related statistics for information and entertainment. SPL is an independent app and is <b>not affiliated with or endorsed by</b> Pi Network, any league, club, federation or data provider.</p>
+    <h3>2. Football data</h3>
+    <p>Data is provided by football-data.org and API-Football. We work to show it accurately and promptly, but scores and statistics can be delayed, incomplete or occasionally wrong, and some competitions or details may be unavailable. SPL is provided “as is”. Do not rely on it for betting or financial decisions; SPL offers no betting features.</p>
+    <h3>3. Pi account</h3>
+    <p>Signing in uses your Pi Network account and is subject to Pi Network’s terms. You are responsible for keeping your Pi account secure.</p>
+    <h3>4. Pi payments</h3>
+    <ul>
+      <li>Supporting SPL with Pi is optional and does not unlock extra features.</li>
+      <li>Payments are confirmed by you in your Pi wallet and recorded on the Pi blockchain. Completed blockchain transactions cannot be reversed by SPL.</li>
+      <li>If something goes wrong with a payment, contact <b>support.spl.pi@gmail.com</b> with the payment details and we will help.</li>
+    </ul>
+    <h3>5. Acceptable use</h3>
+    <p>Do not misuse SPL: no attempts to disrupt the service, overload it with automated requests, copy its data in bulk, or access parts of it you are not meant to.</p>
+    <h3>6. Names and logos</h3>
+    <p>Club, competition and other names or logos belong to their owners and are shown only to identify teams and competitions.</p>
+    <h3>7. Liability</h3>
+    <p>To the extent allowed by law, SPL is not liable for losses arising from use of the app or from inaccurate or unavailable data.</p>
+    <h3>8. Changes and contact</h3>
+    <p>We may update the app and these terms; the latest version is always shown here. Questions: <b>support.spl.pi@gmail.com</b>.</p>` },
+};
+function viewLegal(kind) {
+  const L = LEGAL[kind];
+  setTop(L.title); setTab('me'); clearInterval(timer);
+  app.innerHTML = `<div class="view legal"><h1>${L.title}</h1><p class="upd">Last updated ${LEGAL_UPDATED}</p>${L.body}
+    <p class="other"><a href="#/${kind === 'privacy' ? 'terms' : 'privacy'}">Read the ${kind === 'privacy' ? 'Terms of Use' : 'Privacy Policy'} →</a></p>${footer()}</div>`;
+}
+
+/* ---------- My Football ---------- */
+let piUser = null;
+function viewMe() {
+  setTop(null); setTab('me'); clearInterval(timer);
+  const teams = Object.entries(FAV.teams), comps = Object.entries(FAV.comps);
+  const recent = store.get('recent', []).filter((r) => r.provider === PROVIDER?.provider);
+  const toggles = [
+    ['h24', '24-hour clock', 'Show kick-off times as 15:00 instead of 3:00 PM', false],
+    ['dataSaver', 'Data saver', 'Hide club crests to use less mobile data', false],
+  ];
+  app.innerHTML = `<div class="view">
+    <div class="me-card">
+      <span class="net-badge test"><span class="pulse"></span>Pi Testnet</span>
+      <h2>${piUser ? 'Hi, ' + esc(piUser) : 'Your football'}</h2>
+      <p>${piUser ? 'Signed in with Pi. Your follows are saved on this device.' : 'Sign in with your Pi account. Follow clubs and competitions to put their matches first on Home.'}</p>
+      ${piUser ? '<button class="btn ghost" id="piLogout">Sign out</button>' : '<button class="btn" id="piLogin">Sign in with Pi</button>'}
+      <span id="piMsg" class="pi-msg"></span>
+    </div>
+    <div class="section-h"><h2>Support SPL</h2></div>
+    <div class="pay-card">
+      <p>SPL is free. If you enjoy it, you can support development with Pi. Support is optional and doesn’t unlock extra features.</p>
+      <div class="amounts">${CONFIG.PAY_AMOUNTS.map((a) => `<button class="amt" data-amt="${a}">${a} π</button>`).join('')}</div>
+      <div class="pay-log" id="payLog" aria-live="polite">${payLogHtml()}</div>
+    </div>
+    <div class="section-h"><h2>Teams you follow</h2></div>
+    ${teams.length ? `<div class="list">${teams.map(([id, t]) => `<a class="li" href="#/team/${esc(id)}">${crest(t.logo, t.name)}<div class="t"><b>${esc(t.name)}</b><small>${esc(t.country || '')}</small></div>${starBtn('teams', id, t)}</a>`).join('')}</div>`
+      : `<div class="note">${IC.info}<span>Tap <b>+ Follow</b> on any team page, or search for a club.</span></div>`}
+    <div class="section-h"><h2>Competitions you follow</h2></div>
+    ${comps.length ? `<div class="list">${comps.map(([id, c]) => `<a class="li" href="#/competition/${esc(id)}">${crest(c.logo, c.name)}<div class="t"><b>${esc(c.name)}</b><small>${esc(c.country || '')}</small></div>${starBtn('comps', id, c)}</a>`).join('')}</div>`
+      : `<div class="note">${IC.info}<span>Tap the star beside any competition to follow it.</span></div>`}
+    ${recent.length ? `<div class="section-h"><h2>Recently viewed</h2></div><div class="list">${recent.map((r) => `<a class="li" href="#/match/${esc(r.id)}"><div class="t"><b>${esc(r.label)}</b><small>${esc(fmtDate(r.kickoff))}</small></div>${IC.chev}</a>`).join('')}</div>` : ''}
+    <div class="section-h"><h2>Settings</h2></div>
+    <div class="list">${toggles.map(([k, l, d]) => `<div class="li"><div class="t"><b>${l}</b><small>${d}</small></div><button class="tog ${settings[k] ? 'on' : ''}" data-set="${k}" role="switch" aria-checked="${!!settings[k]}" aria-label="${l}"></button></div>`).join('')}</div>
+    <div class="section-h"><h2>About</h2></div>
+    <div class="kv">
+      <div><span>Data source</span><b>${esc(PROVIDER?.label || 'Not connected')}</b></div>
+      <div><span>Time zone</span><b>${esc(TZ)}</b></div>
+      <div><span>Support</span><b><a href="mailto:support.spl.pi@gmail.com" style="color:var(--green)">support.spl.pi@gmail.com</a></b></div>
+      <div><span>Website</span><b>spl.pi</b></div>
+      <div><span>Privacy Policy</span><b><a href="#/privacy" style="color:var(--green)">Read</a></b></div>
+      <div><span>Terms of Use</span><b><a href="#/terms" style="color:var(--green)">Read</a></b></div>
+      <div><span>Introduction</span><b><button id="replayOnb" style="color:var(--green);font-weight:600">View again</button></b></div>
+      <div><span>Version</span><b>1.5.3 · Pi Testnet</b></div>
+    </div>${footer()}</div>`;
+  app.querySelectorAll('[data-set]').forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.set; settings[k] = !settings[k]; saveSettings();
+    b.classList.toggle('on', settings[k]); b.setAttribute('aria-checked', settings[k]);
+  }));
+  $('#piLogin')?.addEventListener('click', () => piLogin());
+  $('#piLogout')?.addEventListener('click', piLogout);
+  $('#replayOnb')?.addEventListener('click', () => showOnboarding(true));
+  app.querySelectorAll('[data-amt]').forEach((b) => b.addEventListener('click', () => submitPiPayment(Number(b.dataset.amt))));
+}
+
+/* =====================================================================
+   PI NETWORK — MAINNET sign-in + payments
+   Pattern proven in Copa / Humanitarian Hub:
+   - Pi.init in piLogin AND submitPiPayment
+   - onReadyForServerApproval: fire-and-forget fetch, no return, .then.then.catch
+   - onReadyForServerCompletion: fetch .then.then.catch
+   - server endpoints always answer HTTP 200
+   ===================================================================== */
+const PI_ENDPOINTS = { approve: '/approve', complete: '/complete', cancel: '/cancel-payment', verify: '/verify-user' };
+let piAuthed = false;
+let payBusy = false;
+const PAYLOG_MAX = 12;
+let payLogLines = [];
+try { payLogLines = JSON.parse(sessionStorage.getItem('spl.paylog') || '[]'); } catch {}
+
+function payLog(text, kind) {
+  const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  payLogLines.push({ t, text, kind: kind || '' });
+  payLogLines = payLogLines.slice(-PAYLOG_MAX);
+  try { sessionStorage.setItem('spl.paylog', JSON.stringify(payLogLines)); } catch {}
+  console.log('[SPL-PI]', text);
+  const el = document.getElementById('payLog');
+  if (el) el.innerHTML = payLogHtml();
+}
+function payLogHtml() {
+  if (!payLogLines.length) return '<div class="pl-empty">Payment activity will appear here.</div>';
+  return payLogLines.map((l) => `<div class="plog ${l.kind}"><time>${esc(l.t)}</time><span>${esc(l.text)}</span></div>`).join('');
+}
+function piMsg(text) { const m = document.getElementById('piMsg'); if (m) m.textContent = text || ''; }
+function inPiBrowser() { return typeof window.Pi !== 'undefined'; }
+
+function postJson(url, body) {
+  return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+}
+
+// Payments left unfinished last time (e.g. app closed mid-payment) must be resolved before a new one.
+function onIncompletePaymentFound(payment) {
+  const id = payment && payment.identifier;
+  const txid = payment && payment.transaction && payment.transaction.txid;
+  payLog('Found an unfinished payment ' + (id || '') + ' — resolving it…', 'warn');
+  if (txid) {
+    postJson(PI_ENDPOINTS.complete, { paymentId: id, txid: txid })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { payLog(d.ok ? 'Unfinished payment completed.' : 'Could not complete the unfinished payment: ' + (d.error || 'unknown'), d.ok ? 'ok' : 'err'); })
+      .catch(function () { payLog('Network error while completing the unfinished payment.', 'err'); });
+  } else {
+    postJson(PI_ENDPOINTS.cancel, { paymentId: id })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { payLog(d.ok ? 'Unfinished payment cancelled. You can pay again.' : 'Could not cancel the unfinished payment: ' + (d.error || 'unknown'), d.ok ? 'ok' : 'err'); })
+      .catch(function () { payLog('Network error while cancelling the unfinished payment.', 'err'); });
+  }
+}
+
+function piLogin(opts) {
+  opts = opts || {};
+  if (!inPiBrowser()) { piMsg('Open SPL in the Pi Browser to sign in with Pi.'); return Promise.resolve(false); }
+  if (!opts.silent) piMsg('Connecting to Pi…');
+  try {
+    Pi.init({ version: '2.0', sandbox: CONFIG.PI_SANDBOX });
+  } catch (e) { piMsg('Pi sign-in is unavailable here. Open SPL in the Pi Browser.'); return Promise.resolve(false); }
+  return Pi.authenticate(['username', 'payments'], onIncompletePaymentFound).then(function (auth) {
+    piAuthed = true;
+    piUser = (auth.user && auth.user.username) || null;
+    try { sessionStorage.setItem('spl.piUser', piUser || ''); localStorage.setItem('spl.v1.piSignedIn', '1'); } catch {}
+    // Confirm the login with Pi's servers (logged server-side as login:ok).
+    postJson(PI_ENDPOINTS.verify, { accessToken: auth.accessToken })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (!d.ok) console.warn('[SPL-PI] login not confirmed by server:', d.error); })
+      .catch(function () {});
+    if (!opts.silent && location.hash.startsWith('#/me')) viewMe();
+    return true;
+  }).catch(function (err) {
+    piAuthed = false;
+    if (!opts.silent) piMsg('Pi sign-in was cancelled or failed. You can keep using SPL without signing in.');
+    console.warn('[SPL-PI] authenticate failed', err);
+    return false;
+  });
+}
+
+function piLogout() {
+  piUser = null; piAuthed = false;
+  try { sessionStorage.removeItem('spl.piUser'); localStorage.removeItem('spl.v1.piSignedIn'); } catch {}
+  viewMe();
+}
+
+function submitPiPayment(amount) {
+  if (payBusy) { payLog('A payment is already in progress.', 'warn'); return; }
+  if (!CONFIG.PAY_AMOUNTS.includes(amount)) return;
+  if (!inPiBrowser()) { payLog('Open SPL in the Pi Browser to pay with Pi.', 'err'); return; }
+  const go = function () {
+    try { Pi.init({ version: '2.0', sandbox: CONFIG.PI_SANDBOX }); } catch (e) {}
+    payBusy = true;
+    payLog('Starting payment of ' + amount + ' π…');
+    Pi.createPayment({
+      amount: amount,
+      memo: 'Support SPL — ' + amount + ' Pi',
+      metadata: { app: 'spl', kind: 'support', amount: amount },
+    }, {
+      onReadyForServerApproval: function (paymentId) {
+        payLog('Approving payment ' + paymentId + '…');
+        postJson(PI_ENDPOINTS.approve, { paymentId: paymentId })
+          .then(function (r) { return r.json(); })
+          .then(function (d) { payLog(d.ok ? 'Approved by SPL server. Confirm in your Pi wallet.' : 'Server did not approve: ' + (d.error || 'unknown'), d.ok ? '' : 'err'); })
+          .catch(function () { payLog('Network error during approval.', 'err'); });
+      },
+      onReadyForServerCompletion: function (paymentId, txid) {
+        payLog('Transaction sent. Completing…');
+        postJson(PI_ENDPOINTS.complete, { paymentId: paymentId, txid: txid })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            payBusy = false;
+            payLog(d.ok ? 'Payment complete — thank you for supporting SPL! (' + amount + ' π)' : 'Completion failed: ' + (d.error || 'unknown'), d.ok ? 'ok' : 'err');
+          })
+          .catch(function () { payBusy = false; payLog('Network error during completion. It will be finished next time you sign in.', 'err'); });
+      },
+      onCancel: function (paymentId) {
+        payBusy = false;
+        payLog('Payment cancelled.', 'warn');
+      },
+      onError: function (error, payment) {
+        payBusy = false;
+        payLog('Payment error: ' + ((error && error.message) || 'unknown'), 'err');
+      },
+    });
+  };
+  if (piAuthed) go();
+  else {
+    payLog('Signing in with Pi first…');
+    piLogin().then(function (ok) { if (ok) go(); else payLog('Sign-in is needed to pay with Pi.', 'err'); });
+  }
+}
+
+try { piUser = sessionStorage.getItem('spl.piUser') || null; } catch {}
+
+/* ---------- Search ---------- */
+const sEl = $('#search'), sIn = $('#searchInput'), sRes = $('#searchRes');
+let sTimer = null, sSeq = 0;
+$('#searchBtn').addEventListener('click', () => { sEl.classList.add('open'); sIn.focus(); if (!sIn.value) searchHint(); });
+$('#searchClose').addEventListener('click', closeSearch);
+function closeSearch() { sEl.classList.remove('open'); }
+sRes.addEventListener('click', (e) => { if (e.target.closest('a')) closeSearch(); });
+sIn.addEventListener('input', () => { clearTimeout(sTimer); sTimer = setTimeout(runSearch, 350); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSearch(); });
+function searchHint() {
+  sRes.innerHTML = `<div class="section-h"><h2>Popular</h2></div><div class="chips" style="flex-wrap:wrap">${['Arsenal', 'Real Madrid', 'Al Hilal', 'Enyimba', 'Premier League', 'Nigeria'].map((s) => `<button class="chip" data-s="${s}">${s}</button>`).join('')}</div>`;
+  sRes.querySelectorAll('[data-s]').forEach((b) => b.onclick = () => { sIn.value = b.dataset.s; runSearch(); });
+}
+async function runSearch() {
+  const q = sIn.value.trim();
+  if (q.length < 2) { searchHint(); return; }
+  const seq = ++sSeq;
+  sRes.innerHTML = skeleton(1);
+  const ql = q.toLowerCase();
+  const local = [];
+  for (const [, v] of memo) {
+    const d = v.body?.data;
+    if (Array.isArray(d)) d.forEach((m) => { if (m && m.home && (m.home.name.toLowerCase().includes(ql) || m.away.name.toLowerCase().includes(ql)) && !local.some((x) => x.id === m.id)) local.push(m); });
+  }
+  try {
+    const r = await api('search?q=' + encodeURIComponent(q));
+    if (seq !== sSeq) return;
+    const { teams, competitions, partial } = r.data;
+    let html = '';
+    if (local.length) html += `<div class="section-h"><h2>Matches</h2></div>${compGroups(local.slice(0, 8), { star: false })}`;
+    if (teams.length) html += `<div class="section-h"><h2>Teams</h2></div><div class="list">${teams.map((t) => `<a class="li" href="#/team/${t.id}">${crest(t.logo, t.name)}<div class="t"><b>${esc(t.name)}</b><small>${esc(t.country || '')}</small></div>${IC.chev}</a>`).join('')}</div>`;
+    if (competitions.length) html += `<div class="section-h"><h2>Competitions</h2></div><div class="list">${competitions.map(compItem).join('')}</div>`;
+    if (partial) html += `<div class="fresh">${q.length < 3 ? 'Type 3+ letters to search all teams.' : 'Some team lists are still loading — try again in a minute for complete results.'}</div>`;
+    sRes.innerHTML = html || emptyState('No results', `Nothing matched “${q}” in the covered competitions.`);
+  } catch (e) {
+    if (seq !== sSeq) return;
+    sRes.innerHTML = local.length ? compGroups(local) : errorState(e);
+  }
+}
+
+/* ---------- footer ---------- */
+function footer() {
+  return `<footer class="foot">${PROVIDER?.attribution ? esc(PROVIDER.attribution) + '.<br>' : ''}Kick-off times shown in ${esc(TZ)}.<br>SPL · spl.pi — an independent app not affiliated with or endorsed by Pi Network, any league or any club.</footer>`;
+}
+
+/* ---------- splash + first-run welcome ---------- */
+function hideSplash() {
+  const sp = $('#splash'); if (!sp || sp.classList.contains('out')) return;
+  sp.classList.add('out'); setTimeout(() => sp.remove(), 400);
+}
+setTimeout(hideSplash, 2500); // never block the app for long, even on slow networks
+/* ---------- Onboarding (first run): 3 illustrated slides → Sign in with Pi ---------- */
+const MARK_SVG = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#13171B"/><rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#2BE37F" stroke-opacity=".35" stroke-width="2"/><circle cx="32" cy="32" r="13" fill="none" stroke="#2BE37F" stroke-width="3.2"/><path d="M8 32h48" stroke="#2BE37F" stroke-width="3.2"/><circle cx="32" cy="32" r="3.6" fill="#F3F5F7"/></svg>';
+
+// Original illustrations (no club crests or real players).
+const ART = {
+  live: `<svg viewBox="0 0 320 320" role="img" aria-label="Animated goal and live scoreboard">
+    <defs>
+      <radialGradient id="s1g" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#2BE37F" stop-opacity=".30"/><stop offset="1" stop-color="#2BE37F" stop-opacity="0"/></radialGradient>
+      <linearGradient id="s1p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F3520"/><stop offset="1" stop-color="#17502F"/></linearGradient>
+      <linearGradient id="s1beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <radialGradient id="s1flash"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".4" stop-color="#2BE37F" stop-opacity=".45"/><stop offset="1" stop-color="#2BE37F" stop-opacity="0"/></radialGradient>
+      <clipPath id="s1clip"><rect x="112" y="40" width="96" height="50"/></clipPath>
+      <clipPath id="s1pc"><path d="M74 168h172l64 132H10z"/></clipPath>
+    </defs>
+    <circle cx="160" cy="160" r="152" fill="url(#s1g)"/>
+    <path class="s1-beam" d="M18 0l54 0 80 210H-10z" fill="url(#s1beam)"/>
+    <path class="s1-beam b2" d="M248 0l54 0 28 210H168z" fill="url(#s1beam)"/>
+    <!-- pitch in perspective -->
+    <g clip-path="url(#s1pc)">
+      <path d="M74 168h172l64 132H10z" fill="url(#s1p)"/>
+      <path d="M86 194h148l9 18H77zM68 230h184l12 26H56z" fill="#fff" fill-opacity=".035"/>
+      <path d="M160 168v132M112 168l-34 132M208 168l34 132" stroke="#fff" stroke-opacity=".08" stroke-width="1.5"/>
+      <path d="M118 168l-6 22h96l-6-22" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="1.6"/>
+      <ellipse cx="160" cy="262" rx="46" ry="12" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.6"/>
+    </g>
+    <!-- goal -->
+    <g class="s1-net">
+      <path d="M130 142h60v28h-60z" fill="#fff" fill-opacity=".04"/>
+      <path d="M135 142v28M140 142v28M145 142v28M150 142v28M155 142v28M160 142v28M165 142v28M170 142v28M175 142v28M180 142v28M185 142v28M130 147h60M130 152h60M130 157h60M130 162h60M130 167h60" stroke="#fff" stroke-opacity=".22" stroke-width=".8"/>
+    </g>
+    <path d="M128 172v-32h64v32" fill="none" stroke="#F3F5F7" stroke-width="3.2" stroke-linejoin="round"/>
+    <circle class="s1-flash" cx="160" cy="156" r="46" fill="url(#s1flash)"/>
+    <!-- shot trail + ball -->
+    <path class="s1-trail" d="M112 284Q124 214 166 158" fill="none" stroke="#2BE37F" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="160" stroke-dashoffset="160"/>
+    <g class="s1-ball"><g class="s1-spin">
+      <circle r="13" fill="#F3F5F7"/><path d="M0-6.2l5.9 4.3-2.3 6.9h-7.2l-2.3-6.9z" fill="#13171B"/>
+      <path d="M0-13v6.8M12.4-4l-6.5 2.1M7.6 10.5L3.6 5M-7.6 10.5l4-5.5M-12.4-4l6.5 2.1" stroke="#13171B" stroke-width="1.4"/>
+    </g></g>
+    <!-- confetti -->
+    <g class="s1-conf">
+      <rect style="--dx:-62px;--dy:-48px;--r:220deg" x="157" y="152" width="6" height="9" rx="1.5" fill="#2BE37F"/>
+      <rect style="--dx:58px;--dy:-52px;--r:-200deg" x="157" y="152" width="6" height="9" rx="1.5" fill="#FFD23F"/>
+      <rect style="--dx:-86px;--dy:-8px;--r:160deg" x="157" y="152" width="5" height="8" rx="1.5" fill="#F3F5F7"/>
+      <rect style="--dx:84px;--dy:-14px;--r:-150deg" x="157" y="152" width="5" height="8" rx="1.5" fill="#4D9BFF"/>
+      <rect style="--dx:-30px;--dy:-76px;--r:260deg" x="157" y="152" width="5" height="8" rx="1.5" fill="#FF8A3D"/>
+      <rect style="--dx:30px;--dy:-80px;--r:-240deg" x="157" y="152" width="6" height="9" rx="1.5" fill="#2BE37F"/>
+      <rect style="--dx:-70px;--dy:24px;--r:120deg" x="157" y="152" width="5" height="8" rx="1.5" fill="#FFD23F"/>
+      <rect style="--dx:72px;--dy:20px;--r:-120deg" x="157" y="152" width="5" height="8" rx="1.5" fill="#F3F5F7"/>
+      <circle style="--dx:-46px;--dy:-64px;--r:0deg" cx="160" cy="156" r="3" fill="#FFD23F"/>
+      <circle style="--dx:48px;--dy:-30px;--r:0deg" cx="160" cy="156" r="3" fill="#2BE37F"/>
+    </g>
+    <!-- scoreboard -->
+    <g class="s1-board">
+      <rect x="40" y="26" width="240" height="96" rx="22" fill="#151A1F"/>
+      <rect class="s1-board-glow" x="40" y="26" width="240" height="96" rx="22" fill="none" stroke="#2BE37F" stroke-width="2"/>
+      <circle cx="82" cy="66" r="20" fill="#232A31"/><path d="M73 57h18v8c0 7-4 12-9 14-5-2-9-7-9-14z" fill="#4D9BFF"/>
+      <circle cx="238" cy="66" r="20" fill="#232A31"/><path d="M229 57h18v8c0 7-4 12-9 14-5-2-9-7-9-14z" fill="#FF8A3D"/>
+      <g clip-path="url(#s1clip)" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="42" fill="#2BE37F" text-anchor="middle">
+        <text class="s1-h1" x="134" y="81">1</text><text class="s1-h2" x="134" y="81">2</text>
+        <text x="160" y="79" fill="#5C646D" font-size="30">–</text><text x="186" y="81">1</text>
+      </g>
+      <rect x="132" y="94" width="56" height="18" rx="9" fill="#2BE37F" fill-opacity=".14"/>
+      <circle class="s1-dot" cx="144" cy="103" r="3.5" fill="#2BE37F"/>
+      <text x="166" y="107.5" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="11" fill="#2BE37F">78'</text>
+    </g>
+    <g class="s1-goal">
+      <rect x="206" y="6" width="96" height="34" rx="17" fill="#2BE37F"/>
+      <text x="254" y="29" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="20" letter-spacing="1.5" fill="#04210F">GOAL!</text>
+    </g>
+  </svg>`,
+
+  centre: `<svg viewBox="0 0 320 320" role="img" aria-label="Animated match centre with formation and statistics">
+    <defs>
+      <radialGradient id="s2g" cx="45%" cy="50%" r="62%"><stop offset="0" stop-color="#4D9BFF" stop-opacity=".24"/><stop offset="1" stop-color="#4D9BFF" stop-opacity="0"/></radialGradient>
+      <linearGradient id="s2p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#154A2C"/><stop offset="1" stop-color="#0F361F"/></linearGradient>
+    </defs>
+    <circle cx="150" cy="160" r="152" fill="url(#s2g)"/>
+    <g class="s2-pitch">
+      <rect x="26" y="40" width="160" height="246" rx="18" fill="url(#s2p)" stroke="#fff" stroke-opacity=".12" stroke-width="2"/>
+      <path d="M38 52h136v222H38zM38 163h136M80 52v26h52V52M80 274v-26h52v26" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.6"/>
+      <circle cx="106" cy="163" r="20" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.6"/>
+      <!-- passing move -->
+      <g fill="none" stroke="#2BE37F" stroke-width="2.2" stroke-linecap="round">
+        <path class="s2-pass p1" d="M106 258L124 226" stroke-dasharray="40"/>
+        <path class="s2-pass p2" d="M124 226L146 182" stroke-dasharray="52"/>
+        <path class="s2-pass p3" d="M146 182L106 120" stroke-dasharray="76"/>
+        <path class="s2-pass p4" d="M106 120L106 60" stroke-dasharray="62"/>
+      </g>
+      <g fill="none" stroke="#2BE37F" stroke-width="2">
+        <circle class="s2-ring r1" cx="124" cy="226" r="10"/><circle class="s2-ring r2" cx="146" cy="182" r="10"/>
+        <circle class="s2-ring r3" cx="106" cy="120" r="10"/><circle class="s2-ring r4" cx="106" cy="62" r="10"/>
+      </g>
+      <g fill="#F3F5F7">
+        <circle class="s2-pl" style="--d:.30s" cx="106" cy="258" r="7.5" fill="#FFD23F"/>
+        <circle class="s2-pl" style="--d:.38s" cx="52" cy="226" r="7.5"/><circle class="s2-pl" style="--d:.42s" cx="88" cy="230" r="7.5"/>
+        <circle class="s2-pl" style="--d:.46s" cx="124" cy="226" r="7.5"/><circle class="s2-pl" style="--d:.50s" cx="160" cy="226" r="7.5"/>
+        <circle class="s2-pl" style="--d:.56s" cx="66" cy="182" r="7.5"/><circle class="s2-pl" style="--d:.60s" cx="106" cy="190" r="7.5"/>
+        <circle class="s2-pl" style="--d:.64s" cx="146" cy="182" r="7.5"/>
+        <circle class="s2-pl" style="--d:.70s" cx="58" cy="126" r="7.5"/><circle class="s2-pl" style="--d:.74s" cx="106" cy="120" r="7.5"/>
+        <circle class="s2-pl" style="--d:.78s" cx="154" cy="126" r="7.5"/>
+      </g>
+      <rect x="40" y="18" width="62" height="22" rx="11" fill="#13171B" stroke="#2BE37F" stroke-opacity=".4"/>
+      <circle class="s1-dot" cx="54" cy="29" r="3.5" fill="#2BE37F"/>
+      <text x="76" y="33.5" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="11" fill="#2BE37F">LIVE</text>
+    </g>
+    <g class="s2-stats">
+      <rect x="148" y="92" width="150" height="166" rx="18" fill="#171C22" stroke="#fff" stroke-opacity=".12" stroke-width="2"/>
+      <g font-family="system-ui, sans-serif" font-weight="800" font-size="10" letter-spacing=".6" fill="#8C949D">
+        <text x="164" y="120">POSSESSION</text><text x="164" y="166">SHOTS</text><text x="164" y="212">xG</text>
+      </g>
+      <g font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#F3F5F7" text-anchor="end">
+        <text class="s2-val" style="--d:1.0s" x="282" y="121">62%</text><text class="s2-val" style="--d:1.2s" x="282" y="167">14</text><text class="s2-val" style="--d:1.4s" x="282" y="213">1.84</text>
+      </g>
+      <rect x="164" y="130" width="118" height="8" rx="4" fill="#262D35"/><rect class="s2-bar" style="--d:.9s" x="164" y="130" width="73" height="8" rx="4" fill="#2BE37F"/>
+      <rect x="164" y="176" width="118" height="8" rx="4" fill="#262D35"/><rect class="s2-bar" style="--d:1.1s" x="164" y="176" width="84" height="8" rx="4" fill="#2BE37F"/>
+      <rect x="164" y="222" width="118" height="8" rx="4" fill="#262D35"/><rect class="s2-bar" style="--d:1.3s" x="164" y="222" width="62" height="8" rx="4" fill="#F3F5F7"/>
+    </g>
+    <g class="s2-cards">
+      <rect class="s2-card c1" x="238" y="36" width="24" height="33" rx="3.5" fill="#FFD23F"/>
+      <rect class="s2-card c2" x="264" y="44" width="24" height="33" rx="3.5" fill="#FF4D5E"/>
+    </g>
+  </svg>`,
+
+  leagues: `<svg viewBox="0 0 320 320" role="img" aria-label="Animated globe with football leagues around the world">
+    <defs>
+      <radialGradient id="s4g" cx="50%" cy="48%" r="62%"><stop offset="0" stop-color="#2CC8C8" stop-opacity=".22"/><stop offset="1" stop-color="#2CC8C8" stop-opacity="0"/></radialGradient>
+      <radialGradient id="s4o" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#1E5A3A"/><stop offset=".6" stop-color="#11351F"/><stop offset="1" stop-color="#0A1F13"/></radialGradient>
+      <linearGradient id="s4shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <clipPath id="s4clip"><circle cx="160" cy="160" r="88"/></clipPath>
+    </defs>
+    <circle cx="160" cy="160" r="152" fill="url(#s4g)"/>
+    <g class="s4-orbit"><ellipse cx="160" cy="160" rx="132" ry="44" fill="none" stroke="#2BE37F" stroke-opacity=".28" stroke-width="1.5" stroke-dasharray="4 7" transform="rotate(-18 160 160)"/></g>
+    <g class="s4-globe">
+      <circle cx="160" cy="160" r="88" fill="url(#s4o)" stroke="#2BE37F" stroke-opacity=".55" stroke-width="2"/>
+      <g clip-path="url(#s4clip)" fill="none" stroke="#2BE37F" stroke-opacity=".22" stroke-width="1.2">
+        <ellipse cx="160" cy="160" rx="88" ry="30"/><ellipse cx="160" cy="160" rx="88" ry="62"/><path d="M72 160h176"/>
+        <g class="s4-mer"><ellipse cx="160" cy="160" rx="30" ry="88"/><ellipse cx="160" cy="160" rx="62" ry="88"/><path d="M160 72v176"/>
+          <ellipse cx="336" cy="160" rx="30" ry="88"/><ellipse cx="336" cy="160" rx="62" ry="88"/><path d="M336 72v176"/></g>
+        <!-- land shapes (abstract) -->
+        <g fill="#2BE37F" fill-opacity=".16" stroke="none">
+          <path d="M120 106c10-8 26-8 32 0 4 6-2 12-10 12-6 0-8 6-14 6-8 0-14-10-8-18z"/>
+          <path d="M146 134c10-2 22 2 24 12 2 12-6 28-14 38-6 8-14 4-14-6 0-10-8-14-6-26 1-8 4-16 10-18z"/>
+          <path d="M178 116c10-2 22 2 26 10 2 8-6 12-14 12s-16-2-18-10c-1-6 1-11 6-12z"/>
+          <path d="M92 150c8-4 18 0 20 8 2 10-4 24-10 30-6-2-10-12-12-22-1-8-2-14 2-16z"/>
+        </g>
+      </g>
+      <rect class="s4-shine" x="40" y="60" width="70" height="200" fill="url(#s4shine)" clip-path="url(#s4clip)"/>
+    </g>
+    <!-- pins -->
+    <g class="s4-pin" style="--d:.5s"><circle class="s4-ring" cx="134" cy="112" r="6" fill="none" stroke="#4D9BFF" stroke-width="2"/><path d="M134 112c-5-6-8-9-8-13a8 8 0 0116 0c0 4-3 7-8 13z" fill="#4D9BFF"/><circle cx="134" cy="99" r="3" fill="#0A0C0E"/></g>
+    <g class="s4-pin" style="--d:.75s"><circle class="s4-ring" cx="192" cy="128" r="6" fill="none" stroke="#2BE37F" stroke-width="2"/><path d="M192 128c-5-6-8-9-8-13a8 8 0 0116 0c0 4-3 7-8 13z" fill="#2BE37F"/><circle cx="192" cy="115" r="3" fill="#0A0C0E"/></g>
+    <g class="s4-pin" style="--d:1s"><circle class="s4-ring" cx="156" cy="160" r="6" fill="none" stroke="#FFD23F" stroke-width="2"/><path d="M156 160c-5-6-8-9-8-13a8 8 0 0116 0c0 4-3 7-8 13z" fill="#FFD23F"/><circle cx="156" cy="147" r="3" fill="#0A0C0E"/></g>
+    <g class="s4-pin" style="--d:1.25s"><circle class="s4-ring" cx="104" cy="176" r="6" fill="none" stroke="#FF8A3D" stroke-width="2"/><path d="M104 176c-5-6-8-9-8-13a8 8 0 0116 0c0 4-3 7-8 13z" fill="#FF8A3D"/><circle cx="104" cy="163" r="3" fill="#0A0C0E"/></g>
+    <!-- league chips -->
+    <g font-family="system-ui, sans-serif" font-weight="800" font-size="11">
+      <g class="s4-chip" style="--d:.6s"><rect x="10" y="44" width="116" height="26" rx="13" fill="#1A1F25" stroke="#4D9BFF" stroke-opacity=".6"/><circle cx="25" cy="57" r="4" fill="#4D9BFF"/><text x="34" y="61" fill="#F3F5F7">Premier League</text></g>
+      <g class="s4-chip" style="--d:.85s"><rect x="180" y="58" width="132" height="26" rx="13" fill="#1A1F25" stroke="#2BE37F" stroke-opacity=".6"/><circle cx="195" cy="71" r="4" fill="#2BE37F"/><text x="204" y="75" fill="#F3F5F7">Saudi Pro League</text></g>
+      <g class="s4-chip" style="--d:1.1s"><rect x="214" y="234" width="88" height="26" rx="13" fill="#1A1F25" stroke="#FFD23F" stroke-opacity=".6"/><circle cx="229" cy="247" r="4" fill="#FFD23F"/><text x="238" y="251" fill="#F3F5F7">NPFL</text></g>
+      <g class="s4-chip" style="--d:1.35s"><rect x="8" y="246" width="140" height="26" rx="13" fill="#1A1F25" stroke="#FF8A3D" stroke-opacity=".6"/><circle cx="23" cy="259" r="4" fill="#FF8A3D"/><text x="32" y="263" fill="#F3F5F7">Champions League</text></g>
+    </g>
+  </svg>`,
+
+  tables: `<svg viewBox="0 0 320 320" role="img" aria-label="Animated league table with your club climbing to first place">
+    <defs>
+      <radialGradient id="s5g" cx="50%" cy="45%" r="62%"><stop offset="0" stop-color="#2BE37F" stop-opacity=".2"/><stop offset="1" stop-color="#2BE37F" stop-opacity="0"/></radialGradient>
+      <linearGradient id="s5cup" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset="1" stop-color="#E9A800"/></linearGradient>
+      <clipPath id="s5clip"><rect x="34" y="96" width="252" height="176" rx="4"/></clipPath>
+    </defs>
+    <circle cx="160" cy="165" r="150" fill="url(#s5g)"/>
+    <g class="s5-card">
+      <rect x="26" y="58" width="268" height="226" rx="20" fill="#151A1F" stroke="#fff" stroke-opacity=".1" stroke-width="2"/>
+      <g font-family="system-ui, sans-serif" font-weight="800" font-size="10" letter-spacing=".8" fill="#5C646D">
+        <text x="44" y="84">#</text><text x="66" y="84">CLUB</text><text x="222" y="84" text-anchor="middle">P</text><text x="268" y="84" text-anchor="end">PTS</text>
+      </g>
+      <g font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#8C949D">
+        <text x="47" y="120" text-anchor="middle" fill="#F3F5F7">1</text><text x="47" y="155" text-anchor="middle">2</text><text x="47" y="190" text-anchor="middle">3</text><text x="47" y="225" text-anchor="middle">4</text><text x="47" y="260" text-anchor="middle">5</text>
+      </g>
+      <rect x="30" y="100" width="3" height="28" rx="1.5" fill="#4D9BFF"/><rect x="30" y="135" width="3" height="28" rx="1.5" fill="#4D9BFF"/><rect x="30" y="240" width="3" height="28" rx="1.5" fill="#FF4D5E"/>
+      <g clip-path="url(#s5clip)">
+        <g class="s5-row ra" style="--d:.25s"><rect x="58" y="101" width="226" height="28" rx="8" fill="#1C2229"/><circle cx="76" cy="115" r="8" fill="#4D9BFF"/><rect x="92" y="111" width="74" height="8" rx="4" fill="#C9CED4"/><text x="222" y="120" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="12" fill="#8C949D">8</text><text x="268" y="121" text-anchor="end" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#F3F5F7">18</text></g>
+        <g class="s5-row rb" style="--d:.35s"><rect x="58" y="136" width="226" height="28" rx="8" fill="#1C2229"/><circle cx="76" cy="150" r="8" fill="#FF8A3D"/><rect x="92" y="146" width="60" height="8" rx="4" fill="#C9CED4"/><text x="222" y="155" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="12" fill="#8C949D">8</text><text x="268" y="156" text-anchor="end" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#F3F5F7">17</text></g>
+        <g class="s5-row rd" style="--d:.55s"><rect x="58" y="206" width="226" height="28" rx="8" fill="#1C2229"/><circle cx="76" cy="220" r="8" fill="#2CC8C8"/><rect x="92" y="216" width="68" height="8" rx="4" fill="#C9CED4"/><text x="222" y="225" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="12" fill="#8C949D">8</text><text x="268" y="226" text-anchor="end" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#F3F5F7">14</text></g>
+        <g class="s5-row re" style="--d:.65s"><rect x="58" y="241" width="226" height="28" rx="8" fill="#1C2229"/><circle cx="76" cy="255" r="8" fill="#9AA3AD"/><rect x="92" y="251" width="54" height="8" rx="4" fill="#C9CED4"/><text x="222" y="260" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="12" fill="#8C949D">8</text><text x="268" y="261" text-anchor="end" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#F3F5F7">11</text></g>
+        <g class="s5-row rc" style="--d:.45s"><g class="s5-you">
+          <rect x="58" y="171" width="226" height="28" rx="8" fill="#123A24" stroke="#2BE37F" stroke-width="1.6"/>
+          <path d="M76 178l2.2 4.4 4.9.7-3.5 3.4.8 4.9-4.4-2.3-4.4 2.3.8-4.9-3.5-3.4 4.9-.7z" fill="#FFD23F"/>
+          <text x="92" y="189.5" font-family="system-ui, sans-serif" font-weight="800" font-size="12" fill="#F3F5F7">Your club</text>
+          <text x="222" y="190" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="12" fill="#8C949D">8</text>
+          <text class="s5-p1" x="268" y="191" text-anchor="end" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#2BE37F">16</text>
+          <text class="s5-p2" x="268" y="191" text-anchor="end" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="17" fill="#2BE37F">19</text>
+        </g></g>
+      </g>
+    </g>
+    <g class="s5-plus"><rect x="236" y="30" width="54" height="26" rx="13" fill="#2BE37F"/><text x="263" y="48" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="13" fill="#04210F">+3 pts</text></g>
+    <g class="s5-cup">
+      <path d="M44 14h28v12a14 14 0 01-28 0z" fill="url(#s5cup)"/><path d="M44 18h-6a6 6 0 006 9M72 18h6a6 6 0 01-6 9" fill="none" stroke="#E9A800" stroke-width="2.5"/>
+      <rect x="55" y="40" width="6" height="7" fill="#E9A800"/><rect x="48" y="47" width="20" height="5" rx="1.5" fill="#E9A800"/>
+    </g>
+  </svg>`,
+
+  follow: `<svg viewBox="0 0 320 320" role="img" aria-label="Animated followed clubs and goal notification">
+    <defs>
+      <radialGradient id="s3g" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="#FFD23F" stop-opacity=".22"/><stop offset="1" stop-color="#FFD23F" stop-opacity="0"/></radialGradient>
+      <linearGradient id="s3sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#20262D"/><stop offset="1" stop-color="#14181D"/></linearGradient>
+    </defs>
+    <circle cx="160" cy="156" r="146" fill="url(#s3g)"/>
+    <g class="s3-rays" stroke="#FFD23F" stroke-width="3" stroke-linecap="round">
+      <path d="M160 20v-12M160 196v12M72 108h-12M248 108h12M98 46l-8-8M222 46l8-8M98 170l-8 8M222 170l8 8"/>
+    </g>
+    <g class="s3-side l"><path d="M70 136l30 11v30c0 25-15 41-30 49-15-8-30-24-30-49v-30z" fill="url(#s3sh)" stroke="#4D9BFF" stroke-width="3"/><path d="M57 162h26M57 175h26" stroke="#4D9BFF" stroke-width="5" stroke-linecap="round"/></g>
+    <g class="s3-side r"><path d="M250 136l30 11v30c0 25-15 41-30 49-15-8-30-24-30-49v-30z" fill="url(#s3sh)" stroke="#FF8A3D" stroke-width="3"/><circle cx="250" cy="170" r="11" fill="none" stroke="#FF8A3D" stroke-width="5"/></g>
+    <g class="s3-main">
+      <path d="M160 46l42 16v42c0 35-21 58-42 70-21-12-42-35-42-70V62z" fill="url(#s3sh)" stroke="#2BE37F" stroke-width="3.2"/>
+      <path class="s3-star" d="M160 76l9.4 19 21 3-15.2 14.8 3.6 20.9L160 123.8l-18.8 9.9 3.6-20.9L129.6 98l21-3z" fill="#FFD23F"/>
+    </g>
+    <g class="s3-chip">
+      <rect x="116" y="182" width="88" height="26" rx="13" fill="#2BE37F"/>
+      <path d="M128 195l4 4 7-8" fill="none" stroke="#04210F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="172" y="199.5" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="800" font-size="11.5" fill="#04210F">Following</text>
+    </g>
+    <g class="s3-spark" fill="#F3F5F7">
+      <path class="k1" d="M44 70l2.5 6.5L53 79l-6.5 2.5L44 88l-2.5-6.5L35 79l6.5-2.5z"/>
+      <path class="k2" d="M276 64l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>
+      <path class="k3" d="M286 214l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#FFD23F"/>
+      <path class="k4" d="M34 230l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#2BE37F"/>
+    </g>
+    <g class="s3-note">
+      <rect x="40" y="234" width="240" height="58" rx="18" fill="#1A1F25" stroke="#fff" stroke-opacity=".12" stroke-width="2"/>
+      <circle cx="70" cy="263" r="15" fill="#2BE37F" fill-opacity=".16"/>
+      <g class="s3-bell"><path d="M64 268v-5a6 6 0 0112 0v5l2.5 3h-17z" fill="none" stroke="#2BE37F" stroke-width="2.2" stroke-linejoin="round"/><path d="M68 274a2.5 2.5 0 004 0" stroke="#2BE37F" stroke-width="2.2" fill="none" stroke-linecap="round"/></g>
+      <text x="94" y="259" font-family="system-ui, sans-serif" font-weight="800" font-size="12.5" fill="#F3F5F7">GOAL! Your team scores</text>
+      <text x="94" y="276" font-family="system-ui, sans-serif" font-weight="600" font-size="11.5" fill="#8C949D">78' · 2–1 · tap to open</text>
+    </g>
+  </svg>`,
+};
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" opacity=".35"/><path d="M8 12.5l2.6 2.5L16 9.5"/></svg>';
+
+function showOnboarding(force) {
+  if (!force && store.get('onboarded', false)) return;
+  if (document.querySelector('.onb')) return;
+  const slides = [
+    { art: ART.live, title: 'Live scores, <em>every second</em>', text: 'Goals, cards and full-time results the moment they happen.' },
+    { art: ART.centre, title: 'A match centre <em>for every game</em>', text: 'Line-ups, events, statistics and head-to-head, wherever the data is available.' },
+    { art: ART.leagues, title: 'Every big league, <em>one app</em>', text: 'Premier League to Champions League, plus the Saudi Pro League and Nigerian football.' },
+    { art: ART.tables, title: 'Tables and stats <em>at a glance</em>', text: 'League tables, top scorers and form — always up to date.' },
+    { art: ART.follow, title: 'Your clubs, <em>first</em>', text: 'Follow teams and competitions and their matches go straight to the top of your feed.' },
+  ];
+  const SCENE_MS = 6500;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const total = slides.length + 1; // + sign-in page
+  let i = 0, timerId = null;
+  const o = document.createElement('div');
+  o.className = 'onb'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Welcome to SPL');
+  o.innerHTML = `
+    <div class="onb-top"><span class="onb-brand">${MARK_SVG}SPL</span><button class="onb-skip" id="onbSkip">Skip <span aria-hidden="true">›</span></button></div>
+    <div class="onb-bars" id="onbBars" style="--dur:${SCENE_MS}ms">${slides.map(() => '<i><b></b></i>').join('')}</div>
+    <div class="onb-track" id="onbTrack">
+      ${slides.map((sl) => `<section class="onb-slide"><div class="onb-art">${sl.art}</div><h2>${sl.title}</h2><p>${sl.text}</p></section>`).join('')}
+      <section class="onb-slide onb-login">
+        <div class="lg-mark">${MARK_SVG}</div>
+        <div class="lg-name">SPL</div>
+        <div class="lg-dom">spl.pi</div>
+        <p>Every Match. Every Moment. Every Goal.</p>
+        <div class="onb-perks">
+          <div>${CHECK}Save your favourite clubs and leagues</div>
+          <div>${CHECK}Pick up where you left off</div>
+          <div>${CHECK}Support SPL with Pi</div>
+        </div>
+      </section>
+    </div>
+    <div class="onb-foot">
+      <span class="onb-count" id="onbCount"></span>
+      <button class="btn" id="onbNext">Next</button>
+      <button class="onb-guest" id="onbGuest" hidden>Continue as guest</button>
+      <div class="onb-legal" id="onbLegal" hidden>By signing in you agree to the <a href="#/terms" data-legal>Terms of Use</a> and <a href="#/privacy" data-legal>Privacy Policy</a>.</div>
+      <div class="onb-msg" id="onbMsg"></div>
+      <div class="onb-domain">SPL · <b>spl.pi</b></div>
+    </div>`;
+  document.body.appendChild(o);
+  const track = o.querySelector('#onbTrack'), next = o.querySelector('#onbNext'), skip = o.querySelector('#onbSkip'),
+    guest = o.querySelector('#onbGuest'), msg = o.querySelector('#onbMsg'), bars = o.querySelector('#onbBars'),
+    barEls = [...bars.querySelectorAll('i')], count = o.querySelector('#onbCount');
+  const finish = () => { clearTimeout(timerId); store.set('onboarded', true); o.style.opacity = '0'; o.style.transition = 'opacity .25s'; setTimeout(() => o.remove(), 260); if (location.hash.startsWith('#/me')) viewMe(); };
+  function go(n) {
+    clearTimeout(timerId);
+    i = Math.max(0, Math.min(total - 1, n));
+    track.style.transform = `translateX(-${i * 100}%)`;
+    o.querySelectorAll('.onb-slide').forEach((sl, k) => { sl.classList.remove('play'); if (k === i) { void sl.offsetWidth; sl.classList.add('play'); } });
+    barEls.forEach((el, k) => {
+      el.classList.remove('on', 'done');
+      if (k < i) el.classList.add('done');
+      if (k === i) { void el.offsetWidth; el.classList.add(reduced ? 'done' : 'on'); }
+    });
+    const last = i === total - 1;
+    bars.classList.toggle('hide', last);
+    skip.style.visibility = last ? 'hidden' : 'visible';
+    guest.hidden = !last;
+    o.querySelector('#onbLegal').hidden = !last;
+    count.textContent = last ? '' : `${i + 1} / ${slides.length}`;
+    count.style.display = last ? 'none' : '';
+    next.innerHTML = last ? '<span class="pi-glyph">π</span> Sign in with Pi' : (i === slides.length - 1 ? 'Get started <span class="arr">→</span>' : 'Next <span class="arr">→</span>');
+    msg.textContent = '';
+    // auto-play like a short video; stops at the sign-in page
+    if (!last && !reduced) timerId = setTimeout(() => go(i + 1), SCENE_MS);
+  }
+  // hold to pause (like stories)
+  const pause = () => { clearTimeout(timerId); bars.classList.add('paused'); };
+  const resume = () => {
+    if (!bars.classList.contains('paused')) return;
+    bars.classList.remove('paused');
+    if (i < total - 1 && !reduced) {
+      const on = barEls[i] && barEls[i].querySelector('b');
+      const done = on ? on.getBoundingClientRect().width / Math.max(1, barEls[i].getBoundingClientRect().width) : 0;
+      timerId = setTimeout(() => go(i + 1), Math.max(300, SCENE_MS * (1 - done)));
+    }
+  };
+  next.onclick = () => {
+    if (i < total - 1) return go(i + 1);
+    if (!inPiBrowser()) { msg.textContent = 'Open SPL in the Pi Browser to sign in with Pi.'; return; }
+    next.disabled = true; next.textContent = 'Connecting to Pi…';
+    piLogin().then((ok) => {
+      next.disabled = false;
+      if (ok) finish();
+      else { go(i); msg.textContent = 'Sign-in was cancelled. Try again or continue as guest.'; }
+    });
+  };
+  skip.onclick = () => go(total - 1);   // Skip jumps straight to the sign-in page
+  guest.onclick = finish;
+  o.querySelectorAll('[data-legal]').forEach((a) => a.addEventListener('click', () => { clearTimeout(timerId); o.remove(); }));
+  // swipe + hold
+  let x0 = null, t0 = 0;
+  track.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; t0 = Date.now(); pause(); }, { passive: true });
+  track.addEventListener('touchend', (e) => {
+    const dx = x0 === null ? 0 : e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) { bars.classList.remove('paused'); go(i + (dx < 0 ? 1 : -1)); }
+    else resume();
+  });
+  track.addEventListener('mousedown', pause);
+  track.addEventListener('mouseup', resume);
+  document.addEventListener('visibilitychange', function v() {
+    if (!document.body.contains(o)) return document.removeEventListener('visibilitychange', v);
+    if (document.hidden) pause(); else resume();
+  });
+  document.addEventListener('keydown', function k(e) {
+    if (!document.body.contains(o)) return document.removeEventListener('keydown', k);
+    if (e.key === 'ArrowRight') go(i + 1); if (e.key === 'ArrowLeft') go(i - 1);
+  });
+  go(0);
+}
+
+/* =====================================================================
+   ROUTER
+   ===================================================================== */
+function route(refresh = false) {
+  const h = location.hash.replace(/^#\/?/, '') || 'home';
+  const [a, b] = h.split('/');
+  if (!refresh) window.scrollTo(0, 0);
+  closeSearch();
+  if (a === 'home') return viewHome(refresh);
+  if (a === 'live') return viewLive(refresh);
+  if (a === 'competitions') return viewCompetitions();
+  if (a === 'competition' && /^a?\d+$/.test(b)) { if (!refresh) { state.compTab = 'table'; compCache = null; } return viewCompetition(b, refresh); }
+  if (a === 'match' && /^a?\d+$/.test(b)) { if (!refresh) { matchData = null; state.luSide = 'home'; } return viewMatch(b, refresh); }
+  if (a === 'team' && /^a?\d+$/.test(b)) { if (!refresh) { state.teamTab = 'matches'; teamData = null; } return viewTeam(b, refresh); }
+  if (a === 'tables') return viewTables(refresh);
+  if (a === 'news') { location.hash = '#/tables'; return; }
+  if (a === 'privacy') return viewLegal('privacy');
+  if (a === 'terms') return viewLegal('terms');
+  if (a === 'me') return viewMe();
+  location.hash = '#/home';
+}
+window.addEventListener('hashchange', () => route());
+
+/* boot */
+(async function boot() {
+  try { PROVIDER = (await api('status')).data; } catch { PROVIDER = null; }
+  if (PROVIDER && !PROVIDER.configured) PROVIDER = null;
+  { const t = document.createElement('div'); t.className = 'test-strip'; t.title = 'Pi Testnet'; document.body.appendChild(t); }
+  loadFav();
+  route();
+  setTimeout(() => { hideSplash(); let signed = false; try { signed = localStorage.getItem('spl.v1.piSignedIn') === '1'; } catch {} if (!signed && !store.get('welcomed', false)) showOnboarding(); }, 900);
+  // Inside the Pi Browser, quietly restore the Pi session (also resolves unfinished payments).
+  window.addEventListener('load', () => {
+    let was = false; try { was = localStorage.getItem('spl.v1.piSignedIn') === '1'; } catch {}
+    if (inPiBrowser() && was) piLogin({ silent: true }).then((ok) => { if (ok && location.hash.startsWith('#/me')) viewMe(); });
+  });
+  // Keep the Live badge current while browsing other tabs.
+  const badge = () => api('live').then((b) => updateLiveBadge(b.data.length)).catch(() => {});
+  if (PROVIDER) { badge(); setInterval(() => { if (document.visibilityState === 'visible' && !location.hash.startsWith('#/live')) badge(); }, 60000); }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
