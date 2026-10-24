@@ -20,7 +20,8 @@ Mainnet lives in a separate repo (`abdallahelbaggari/spl`) and a separate Cloudf
 ## Pi (develop.pi, testnet app)
 
 - App URL = this project's pages.dev address.
-- Domain validation: put the testnet app's `validation-key.txt` at the top level of this repo.
+- Domain validation: add the testnet app's key as the Cloudflare variable `PI_VALIDATION_KEY` (or put `validation-key.txt` at the top level of this repo).
+- Open `/launch-check` on the testnet site to see what is still missing.
 - Test flow: My Football → Sign in with Pi → Support SPL → 1 π (test-Pi).
   Logs: Cloudflare → Functions → Real-time Logs (`SPL-PI` lines).
 
